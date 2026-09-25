@@ -1,0 +1,20 @@
+name: basecall_demux
+description: Basecall raw fast5 or pod5 reads with Dorado and demultiplex barcoded runs
+keywords:
+  - dorado
+  - basecall
+  - demux
+  - pod5
+input:
+  - samples_ch:
+      type: tuple
+      description: tuple(run_id, input_path, input_type, kit, model, modified_bases_model)
+output:
+  - demux_bams:
+      type: tuple
+      description: tuple(sample_id, bam)
+  - versions:
+      type: file
+      description: File containing software versions
+authors:
+  - "@jyoda68"

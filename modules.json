@@ -1,0 +1,108 @@
+{
+  "name": "longvarmeth",
+  "homePage": "https://github.com/jyoda68/longvarmeth",
+  "repos": {
+    "https://github.com/nf-core/modules.git": {
+      "modules": {
+        "nf-core": {
+          "bcftools/call": {
+            "branch": "master",
+            "git_sha": "d38e2195f0c4bb21a4f0bb4e3579b4a4cbfae641"
+          },
+          "bcftools/concat": {
+            "branch": "master",
+            "git_sha": "d38e2195f0c4bb21a4f0bb4e3579b4a4cbfae641"
+          },
+          "busco": {
+            "branch": "master",
+            "git_sha": "a73cb747372cf54f2a7db68f237ef1b2bf80b852"
+          },
+          "cnvkit": {
+            "branch": "master",
+            "git_sha": "60e86b3e944b0c7913364f339b6732ef16e036e5"
+          },
+          "cramino": {
+            "branch": "master",
+            "git_sha": "f12c8b8e72798e404b9015951d3876e054ba93c8"
+          },
+          "fastqc": {
+            "branch": "master",
+            "git_sha": "63f84307ef11dae9842c125bb7e29ea2ec6ebff7"
+          },
+          "filtlong": {
+            "branch": "master",
+            "git_sha": "c1f72782161bcf7b28dbb37494f6f76cbe3b3420"
+          },
+          "flye": {
+            "branch": "master",
+            "git_sha": "151c6c59fc54bcbbbe7c0c1ea3d8435d7eb66b53"
+          },
+          "medaka": {
+            "branch": "master",
+            "git_sha": "e912bf2be82ff4802c0c7a45610811b7dfb91a78"
+          },
+          "minimap2": {
+            "branch": "master",
+            "git_sha": "1468b8e617dbf16d863e0d860e653da8b788a4e8"
+          },
+          "modkit/pileup": {
+            "branch": "master",
+            "git_sha": "993544c2780e03be16ffb9cf1ad935c10beea9e8"
+          },
+          "multiqc": {
+            "branch": "master",
+            "git_sha": "83296c099c279c13b2c6cfd21f37e408ec228499"
+          },
+          "nanoplot": {
+            "branch": "master",
+            "git_sha": "38a3d53ef69b35ca92e4ee6da3a1db78c65f9730"
+          },
+          "pod5/convert": {
+            "branch": "master",
+            "git_sha": "2bc9837a7593c6628b03e0e7a2df25287cba4386"
+          },
+          "quast": {
+            "branch": "master",
+            "git_sha": "f1d04423081e7d01eb0d507b55db52dc90cb39eb"
+          },
+          "samtools/fastq": {
+            "branch": "master",
+            "git_sha": "525ad2f7ee0e94bb51ae681ff57388be7d19c1be"
+          },
+          "samtools/sort": {
+            "branch": "master",
+            "git_sha": "525ad2f7ee0e94bb51ae681ff57388be7d19c1be"
+          },
+          "sniffles": {
+            "branch": "master",
+            "git_sha": "73c68b7538a7c13e4fb2d7736aa9d2a6a57e3355"
+          },
+          "snpeff/annotate": {
+            "branch": "master",
+            "git_sha": "921200faee8061e89b4f97eec654497e88764a78"
+          },
+          "snpeff/download": {
+            "branch": "master",
+            "git_sha": "921200faee8061e89b4f97eec654497e88764a78"
+          },
+          "vep/annotate": {
+            "branch": "master",
+            "git_sha": "33b1e36ec2726bb6eb54aa3e3b3986429bb701ab"
+          },
+          "vep/download": {
+            "branch": "master",
+            "git_sha": "33b1e36ec2726bb6eb54aa3e3b3986429bb701ab"
+          },
+          "whatshap/haplotag": {
+            "branch": "master",
+            "git_sha": "1c741e21b71aa5a05f137ebce35faee0434cb9de"
+          },
+          "whatshap/phase": {
+            "branch": "master",
+            "git_sha": "1c741e21b71aa5a05f137ebce35faee0434cb9de"
+          }
+        }
+      }
+    }
+  }
+}

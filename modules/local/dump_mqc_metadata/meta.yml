@@ -1,0 +1,25 @@
+name: dump_mqc_metadata
+description: Export workflow summary, software versions, and methods description for MultiQC
+keywords:
+  - multiqc
+  - metadata
+  - versions
+input:
+  - - methods_description_template:
+        type: file
+        description: YAML template for methods description
+output:
+  - summary:
+      - "pipeline_summary_mqc.yaml":
+          type: file
+          description: Workflow parameters summary for MultiQC
+  - versions:
+      - "software_versions_mqc.yaml":
+          type: file
+          description: Software versions table for MultiQC
+  - methods:
+      - "methods_description_mqc.yaml":
+          type: file
+          description: Methods section for MultiQC
+authors:
+  - "@jyoda68"

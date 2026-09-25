@@ -1,0 +1,28 @@
+name: pod5
+description: Tools for manipulating ONT POD5 files
+keywords:
+  - pod5
+  - fast5
+  - conversion
+tools:
+  - pod5:
+      description: Tools for interacting with ONT Pod5 files.
+      homepage: https://github.com/nanoporetech/pod5-file-format
+input:
+  - - run_id:
+        type: string
+        description: Unique run identifier
+    - fast5_dir:
+        type: file
+        description: Directory containing FAST5 files
+output:
+  - pod5_dir:
+      - "converted_pod5":
+          type: directory
+          description: Directory containing converted POD5 files
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

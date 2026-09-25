@@ -1,0 +1,5 @@
+name: dump_mqc_metadata
+channels:
+  - conda-forge
+dependencies:
+  - coreutils

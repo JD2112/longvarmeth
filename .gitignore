@@ -1,0 +1,46 @@
+# Nextflow runtime files
+.nextflow/
+.nextflow.log*
+work/
+results/
+results_*/
+*.html
+*.txt
+
+
+# Pipeline specific outputs
+null/
+.command.*
+.exitcode
+
+# Conda / Python / Environment artifacts
+.conda/
+conda/
+__pycache__/
+*.py[cod]
+*$py.class
+.Rhistory
+.RData
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Singularity / Apptainer / Docker image caches
+*.sif
+*.img
+.singularity/
+.apptainer/
+
+# Databases and heavy downloads
+db/
+*.tar.gz
+*.fa.fai
+*.fasta.fai
+notes.md
+debugging.md

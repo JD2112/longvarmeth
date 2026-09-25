@@ -1,0 +1,28 @@
+name: quast
+description: Quality assessment tool for genome assemblies
+keywords:
+  - assembly
+  - qc
+  - quast
+tools:
+  - quast:
+      description: Evaluates genome assemblies by computing various metrics.
+      homepage: http://quast.sf.net
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - assembly:
+        type: file
+        description: Assembly FASTA file
+output:
+  - report:
+      - "quast_${sample_id}":
+          type: directory
+          description: Directory containing QUAST report and plots
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

@@ -1,0 +1,29 @@
+name: busco
+description: Benchmarking Universal Single-Copy Orthologs
+keywords:
+  - assembly
+  - qc
+  - orthologs
+  - busco
+tools:
+  - busco:
+      description: Quantitative assessment of genome assembly completeness.
+      homepage: https://busco.ezlab.org/
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - assembly:
+        type: file
+        description: Assembly FASTA file
+output:
+  - report:
+      - "busco_${sample_id}":
+          type: directory
+          description: Directory containing BUSCO summary report
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

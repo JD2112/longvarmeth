@@ -1,0 +1,29 @@
+name: cramino
+description: Quality control of BAM and CRAM files
+keywords:
+  - bam
+  - cram
+  - qc
+  - cramino
+tools:
+  - cramino:
+      description: Quality control of BAM and CRAM files.
+      homepage: https://github.com/wdecoster/cramino
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - bam:
+        type: file
+        description: Input BAM file
+output:
+  - report:
+      - "${sample_id}_cramino.txt":
+          type: file
+          description: Text report of BAM alignment statistics
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

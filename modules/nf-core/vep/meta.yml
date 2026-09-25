@@ -1,0 +1,12 @@
+name: ensembl-vep
+description: Variant Effect Predictor (VEP) determines the effect of variants on genes and transcripts
+keywords:
+  - vep
+  - annotation
+  - variant effect
+tools:
+  - vep:
+      description: Predict the functional consequences of genomic variants.
+      homepage: https://www.ensembl.org/info/docs/tools/vep/index.html
+authors:
+  - "@jyoda68"

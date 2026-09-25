@@ -1,0 +1,28 @@
+name: fastqc
+description: Run FastQC on sequencing reads for quality control
+keywords:
+  - quality control
+  - qc
+  - fastq
+tools:
+  - fastqc:
+      description: FastQC gives general quality metrics about your reads.
+      homepage: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - reads:
+        type: file
+        description: Input FASTQ file
+output:
+  - qc_files:
+      - "*_fastqc.{zip,html}":
+          type: file
+          description: FastQC HTML report and ZIP archive
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

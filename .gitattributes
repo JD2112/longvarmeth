@@ -1,0 +1,21 @@
+# Auto-detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Force specific file types to have LF line endings
+*.nf text eol=lf
+*.config text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Treat binary files explicitly
+*.bam binary
+*.bai binary
+*.cram binary
+*.crai binary
+*.gz binary
+*.tar binary
+*.sif binary

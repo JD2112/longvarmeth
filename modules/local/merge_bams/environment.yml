@@ -1,0 +1,6 @@
+name: merge_bams
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::samtools=1.23.1

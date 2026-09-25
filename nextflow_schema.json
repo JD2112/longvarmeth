@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/longvarmeth/master/nextflow_schema.json",
+  "title": "longvarmeth pipeline parameters",
+  "description": "longvarmeth: long-read variant calling & methylation pipeline",
+  "type": "object",
+  "definitions": {
+    "input_output_options": {
+      "title": "Input/Output Options",
+      "type": "object",
+      "description": "Parameters defining input files and output directory.",
+      "properties": {
+        "input": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "mimetype": "text/csv",
+          "description": "Path to comma-separated file containing information about the samples in the experiment.",
+          "default": "samplesheet.csv"
+        },
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where the results will be saved.",
+          "default": "results"
+        }
+      },
+      "required": ["input", "outdir"]
+    },
+    "workflow_behavior": {
+      "title": "Workflow Behavior Options",
+      "type": "object",
+      "description": "Pipeline execution mode and organism type selection.",
+      "properties": {
+        "species": {
+          "type": "string",
+          "description": "Target organism species profile.",
+          "enum": ["human", "eukaryote", "prokaryote", "virus"],
+          "default": "eukaryote"
+        },
+        "run_type": {
+          "type": "string",
+          "description": "Analysis workflow mode: reference-based alignment or de novo assembly.",
+          "enum": ["reference_based", "de_novo_assembly"],
+          "default": "reference_based"
+        },
+        "enable_phasing": {
+          "type": "boolean",
+          "description": "Enable WhatsHap variant phasing and read haplotagging.",
+          "default": false
+        }
+      }
+    },
+    "reference_genome_options": {
+      "title": "Reference Genome Options",
+      "type": "object",
+      "description": "Reference genome paths for alignment and variant calling.",
+      "properties": {
+        "ref_nuc": {
+          "type": "string",
+          "description": "Path to nuclear / primary reference FASTA file."
+        },
+        "ref_mt_ap": {
+          "type": "string",
+          "description": "Path to primary mitochondrial reference FASTA file (e.g. Artemia parthenogenetica)."
+        },
+        "ref_mt_au": {
+          "type": "string",
+          "description": "Path to secondary mitochondrial reference FASTA file (e.g. Artemia urmiana)."
+        }
+      }
+    },
+    "dorado_options": {
+      "title": "Dorado Basecalling Options",
+      "type": "object",
+      "description": "Parameters for GPU-accelerated basecalling and demultiplexing on the host.",
+      "properties": {
+        "dorado_bin": {
+          "type": "string",
+          "description": "Path to local host Dorado executable binary.",
+          "default": "/data/Jyotirmoy/tools/dorado-0.9.6-linux-x64/bin/dorado"
+        },
+        "gpu_devices": {
+          "type": "string",
+          "description": "CUDA device selection flag for Dorado basecalling (e.g. 'cuda:all', 'cuda:0').",
+          "default": "cuda:all"
+        },
+        "threads": {
+          "type": "integer",
+          "description": "Number of CPU threads to allocate for Dorado demux.",
+          "default": 32
+        }
+      }
+    },
+    "filtering_and_assembly_options": {
+      "title": "Read QC, Filtering & Assembly Options",
+      "type": "object",
+      "description": "Parameters for read filtering, de novo assembly, and QC.",
+      "properties": {
+        "min_barcode_size_mb": {
+          "type": "number",
+          "description": "Minimum barcode size in megabases to proceed with downstream steps.",
+          "default": 100
+        },
+        "filt_min_len": {
+          "type": "integer",
+          "description": "Filtlong minimum read length threshold (bp).",
+          "default": 1000
+        },
+        "filt_keep_pct": {
+          "type": "integer",
+          "description": "Filtlong percentage of best bases to retain.",
+          "default": 90
+        },
+        "medaka_model": {
+          "type": "string",
+          "description": "Medaka model used for assembly polishing consensus.",
+          "default": "r1041_e82_400bps_hac_v4.0.0"
+        },
+        "busco_lineage": {
+          "type": "string",
+          "description": "BUSCO lineage dataset for assembly completeness evaluation.",
+          "default": "eukaryota"
+        },
+        "methylartist_locus": {
+          "type": "string",
+          "description": "Genomic locus coordinates to plot locus-specific methylation with Methylartist (e.g., 'chr1:1000-5000')."
+        }
+      }
+    },
+    "annotation_options": {
+      "title": "Variant Annotation Options",
+      "type": "object",
+      "description": "Downstream functional effect annotation parameters.",
+      "properties": {
+        "enable_snpeff": {
+          "type": "boolean",
+          "description": "Enable snpEff functional annotation.",
+          "default": false
+        },
+        "snpeff_db": {
+          "type": "string",
+          "description": "snpEff database identifier.",
+          "default": "GRCh38.105"
+        },
+        "snpeff_cache": {
+          "type": "string",
+          "description": "Path to local snpEff cache directory."
+        },
+        "enable_vep": {
+          "type": "boolean",
+          "description": "Enable Ensembl VEP variant effect annotation.",
+          "default": false
+        },
+        "vep_species": {
+          "type": "string",
+          "description": "VEP species identifier.",
+          "default": "homo_sapiens"
+        },
+        "vep_assembly": {
+          "type": "string",
+          "description": "VEP genome assembly.",
+          "default": "GRCh38"
+        },
+        "vep_version": {
+          "type": "string",
+          "description": "VEP database version.",
+          "default": "110"
+        },
+        "vep_cache": {
+          "type": "string",
+          "description": "Path to local VEP cache directory."
+        }
+      }
+    }
+  },
+  "allOf": [
+    { "$ref": "#/definitions/input_output_options" },
+    { "$ref": "#/definitions/workflow_behavior" },
+    { "$ref": "#/definitions/reference_genome_options" },
+    { "$ref": "#/definitions/dorado_options" },
+    { "$ref": "#/definitions/filtering_and_assembly_options" },
+    { "$ref": "#/definitions/annotation_options" }
+  ]
+}

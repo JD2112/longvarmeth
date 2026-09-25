@@ -1,0 +1,37 @@
+name: methylartist
+description: Automated generation of composite plots for methylation and genomic data
+keywords:
+  - methylation
+  - plots
+  - methylartist
+tools:
+  - methylartist:
+      description: Methylartist is a tool for plotting and visualising methylation data from Nanopore sequencers.
+      homepage: https://github.com/adamewing/methylartist
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - bam:
+        type: file
+        description: Aligned BAM file with MM/ML methylation tags
+    - bai:
+        type: file
+        description: BAM index file
+  - - ref:
+        type: file
+        description: Reference FASTA file
+  - - locus:
+        type: string
+        description: Genomic coordinates (e.g. 'chr1:1000-2000')
+output:
+  - plot:
+      - "${sample_id}_locus_*.png":
+          type: file
+          description: Locus methylation PNG plot
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

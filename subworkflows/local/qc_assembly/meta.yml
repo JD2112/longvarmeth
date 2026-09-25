@@ -1,0 +1,41 @@
+name: qc_assembly
+description: Run QC metrics on long reads and optionally perform de novo assembly, Medaka polishing, and assembly benchmarks
+keywords:
+  - fastqc
+  - nanoplot
+  - cramino
+  - flye
+  - medaka
+  - quast
+  - busco
+input:
+  - demux_bams:
+      type: tuple
+      description: tuple(sample_id, bam)
+output:
+  - fastq:
+      type: tuple
+      description: tuple(sample_id, fastq.gz)
+  - assembly:
+      type: tuple
+      description: tuple(sample_id, polished_assembly)
+  - fastqc_files:
+      type: file
+      description: FastQC HTML/ZIP files
+  - nanoplot_files:
+      type: directory
+      description: NanoPlot report folder
+  - cramino_files:
+      type: file
+      description: Cramino text report
+  - quast_files:
+      type: directory
+      description: QUAST report folder
+  - busco_files:
+      type: directory
+      description: BUSCO report folder
+  - versions:
+      type: file
+      description: Software versions
+authors:
+  - "@jyoda68"
