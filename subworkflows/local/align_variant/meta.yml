@@ -1,0 +1,35 @@
+name: align_variant
+description: Align long reads, transfer methylation tags, call variants (SNVs, indels, SVs, CNVs), phase reads, and call methylation
+keywords:
+  - alignment
+  - minimap2
+  - bcftools
+  - sniffles
+  - cnvkit
+  - whatshap
+  - modkit
+input:
+  - fastq_ch:
+      type: tuple
+      description: tuple(sample_id, fastq)
+  - demux_bams:
+      type: tuple
+      description: tuple(sample_id, bam)
+output:
+  - tagged_nuc_bam_bai:
+      type: tuple
+      description: tuple(sample_id, bam, bai)
+  - vcf_nuc:
+      type: tuple
+      description: tuple(sample_id, vcf, tbi)
+  - bed_nuc:
+      type: tuple
+      description: tuple(sample_id, bed)
+  - phased_bam_bai:
+      type: tuple
+      description: tuple(sample_id, bam, bai)
+  - versions:
+      type: file
+      description: Software versions
+authors:
+  - "@jyoda68"

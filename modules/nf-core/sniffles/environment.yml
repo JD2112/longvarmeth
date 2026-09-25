@@ -1,0 +1,6 @@
+name: sniffles
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::sniffles=2.8.0

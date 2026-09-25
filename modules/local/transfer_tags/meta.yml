@@ -1,0 +1,37 @@
+name: transfer_tags
+description: Transfer MM and ML methylation tags from basecalled BAMs to coordinate-sorted mapped BAMs
+keywords:
+  - methylation
+  - tags
+  - pysam
+tools:
+  - pysam:
+      description: Python wrapper around HTSlib and samtools.
+      homepage: https://github.com/pysam-developers/pysam
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - mapped_bam:
+        type: file
+        description: Sorted aligned BAM file
+    - mapped_bai:
+        type: file
+        description: Index of aligned BAM file
+    - source_bam:
+        type: file
+        description: Unmapped or basecalled BAM containing raw MM and ML tags
+output:
+  - tagged_bam_bai:
+      - "${sample_id}.mmtags.sorted.bam":
+          type: file
+          description: Sorted BAM with restored MM and ML modification tags
+      - "${sample_id}.mmtags.sorted.bam.bai":
+          type: file
+          description: Index of tagged BAM
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

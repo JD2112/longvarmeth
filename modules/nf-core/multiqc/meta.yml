@@ -1,0 +1,32 @@
+name: multiqc
+description: Aggregate results from bioinformatics analyses into a single report
+keywords:
+  - qc
+  - summary
+  - multiqc
+tools:
+  - multiqc:
+      description: Search a directory by looking through log files and preparing a summary report.
+      homepage: http://multiqc.info/
+input:
+  - - qc_files:
+        type: file
+        description: List of reports and log files from upstream tools
+  - - multiqc_config:
+        type: file
+        description: MultiQC YAML configuration file
+output:
+  - report:
+      - "*multiqc_report.html":
+          type: file
+          description: Consolidated interactive HTML summary report
+  - data:
+      - "*_data":
+          type: directory
+          description: Directory containing parsed tables and raw MultiQC data
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

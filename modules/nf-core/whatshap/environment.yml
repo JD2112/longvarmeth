@@ -1,0 +1,8 @@
+name: whatshap
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::whatshap=2.8
+  - bioconda::tabix=1.11
+  - bioconda::pysam=0.21.0

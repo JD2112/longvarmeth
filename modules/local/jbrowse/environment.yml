@@ -1,0 +1,6 @@
+name: jbrowse2
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::jbrowse2=4.3.0

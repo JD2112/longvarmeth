@@ -1,0 +1,25 @@
+name: annotation_vis
+description: Generate locus-specific methylation plots and interactive JBrowse 2 web instances
+keywords:
+  - methylartist
+  - jbrowse
+  - visualization
+input:
+  - assembly_ch:
+      type: tuple
+      description: tuple(sample_id, assembly_fasta)
+  - bam_bai_ch:
+      type: tuple
+      description: tuple(sample_id, bam, bai)
+  - vcf_csi_ch:
+      type: tuple
+      description: tuple(sample_id, vcf, csi)
+output:
+  - jbrowse_dir:
+      type: directory
+      description: JBrowse 2 directory
+  - versions:
+      type: file
+      description: Software versions
+authors:
+  - "@jyoda68"

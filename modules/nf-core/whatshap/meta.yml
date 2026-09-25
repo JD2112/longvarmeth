@@ -1,0 +1,13 @@
+name: whatshap
+description: Phasing genomic variants using DNA sequencing reads
+keywords:
+  - phasing
+  - haplotagging
+  - variants
+  - whatshap
+tools:
+  - whatshap:
+      description: Software for phasing genomic variants using DNA sequencing reads.
+      homepage: https://whatshap.readthedocs.io/
+authors:
+  - "@jyoda68"

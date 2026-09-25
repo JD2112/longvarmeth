@@ -1,0 +1,33 @@
+name: flye
+description: Fast and accurate de novo assembler for single molecule sequencing reads
+keywords:
+  - assembly
+  - de novo
+  - long reads
+  - flye
+tools:
+  - flye:
+      description: De novo assembler for single molecule sequencing reads using repeat graphs.
+      homepage: https://github.com/fenderglass/Flye
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - reads:
+        type: file
+        description: Input FASTQ file
+output:
+  - assembly:
+      - "${sample_id}/assembly.fasta":
+          type: file
+          description: Final assembled contigs in FASTA format
+  - flye_files:
+      - "${sample_id}/*":
+          type: directory
+          description: All assembly graph and intermediate files
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

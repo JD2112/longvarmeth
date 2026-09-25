@@ -1,0 +1,31 @@
+name: minimap2
+description: Versatile pairwise aligner for genomic and spliced nucleotide sequences
+keywords:
+  - alignment
+  - long reads
+  - minimap2
+tools:
+  - minimap2:
+      description: A versatile sequence alignment program that aligns DNA or mRNA sequences against a large reference database.
+      homepage: https://github.com/lh3/minimap2
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - reads:
+        type: file
+        description: Input FASTQ file
+  - - reference:
+        type: file
+        description: Reference FASTA file
+output:
+  - sam:
+      - "${sample_id}.sam":
+          type: file
+          description: Alignment SAM file
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

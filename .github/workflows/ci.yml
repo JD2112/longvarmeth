@@ -1,0 +1,32 @@
+name: 'longvarmeth CI'
+
+on:
+  workflow_dispatch:
+
+# on:
+#   push:
+#     branches:
+#       - main
+#       - master
+#       - dev
+#   pull_request:
+#     branches:
+#       - main
+#       - master
+
+jobs:
+  test:
+    name: 'Run pipeline test profile'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v4
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: 'latest'
+
+      - name: Run pipeline dry-run stub test
+        run: |
+          nextflow run main.nf -profile test -stub

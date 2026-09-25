@@ -1,0 +1,7 @@
+repository_type: pipeline
+nf_core_version: 2.14.1
+org_path: null
+lint:
+  files_unchanged:
+    - .gitattributes
+    - .prettierrc.yml

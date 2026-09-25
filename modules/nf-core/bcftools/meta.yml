@@ -1,0 +1,13 @@
+name: bcftools
+description: Utilities for variant calling and manipulating VCFs and BCFs
+keywords:
+  - variant calling
+  - vcf
+  - bcf
+  - bcftools
+tools:
+  - bcftools:
+      description: Set of utilities that manipulate variant calls in the Variant Call Format (VCF).
+      homepage: http://samtools.github.io/bcftools/
+authors:
+  - "@jyoda68"

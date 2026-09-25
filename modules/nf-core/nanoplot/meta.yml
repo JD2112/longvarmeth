@@ -1,0 +1,30 @@
+name: nanoplot
+description: Plotting tool for long read sequencing data and alignments
+keywords:
+  - quality control
+  - qc
+  - nanoplot
+  - long read
+  - oxford nanopore
+tools:
+  - nanoplot:
+      description: Plotting tool for long read sequencing data and alignments.
+      homepage: https://github.com/wdecoster/NanoPlot
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - reads:
+        type: file
+        description: Input FASTQ file
+output:
+  - report:
+      - "nanoplot_${sample_id}":
+          type: directory
+          description: Directory containing NanoPlot HTML report and charts
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

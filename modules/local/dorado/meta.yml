@@ -1,0 +1,13 @@
+name: dorado
+description: GPU-accelerated basecalling and demultiplexing for Oxford Nanopore data
+keywords:
+  - dorado
+  - basecalling
+  - demultiplexing
+  - ont
+tools:
+  - dorado:
+      description: Dorado is Oxford Nanopore's open-source basecaller.
+      homepage: https://github.com/nanoporetech/dorado
+authors:
+  - "@jyoda68"

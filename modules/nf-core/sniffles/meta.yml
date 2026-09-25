@@ -1,0 +1,35 @@
+name: sniffles
+description: Fast and accurate structural variant caller for long-read sequencing
+keywords:
+  - structural variants
+  - sv
+  - sniffles
+  - long reads
+tools:
+  - sniffles:
+      description: Comprehensive structural variant detection and benchmarking.
+      homepage: https://github.com/fritzsedlazeck/Sniffles
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - bam:
+        type: file
+        description: Input BAM alignment file
+    - bai:
+        type: file
+        description: Input BAM index file
+  - - reference:
+        type: file
+        description: Reference FASTA file
+output:
+  - sv_vcf:
+      - "${sample_id}_svs.vcf.gz":
+          type: file
+          description: Structural variant calls in VCF format
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

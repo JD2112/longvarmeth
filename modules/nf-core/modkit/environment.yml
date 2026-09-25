@@ -1,0 +1,6 @@
+name: ont-modkit
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::ont-modkit=0.6.3

@@ -1,0 +1,29 @@
+name: filtlong
+description: Quality filtering tool for long reads
+keywords:
+  - filtlong
+  - qc
+  - filtering
+  - long read
+tools:
+  - filtlong:
+      description: Filtlong is a tool for filtering long reads by quality.
+      homepage: https://github.com/rrwick/Filtlong
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - reads:
+        type: file
+        description: Input FASTQ file
+output:
+  - filtered_reads:
+      - "${sample_id}_filtered.fastq.gz":
+          type: file
+          description: Quality-filtered and size-selected FASTQ file
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

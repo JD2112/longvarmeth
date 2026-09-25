@@ -1,0 +1,40 @@
+name: jbrowse
+description: Generate standalone interactive JBrowse 2 web directories
+keywords:
+  - genome browser
+  - jbrowse
+  - visualization
+tools:
+  - jbrowse2:
+      description: Pluggable open-source next-generation genome browser.
+      homepage: https://jbrowse.org/jb2/
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - assembly_files:
+        type: file
+        description: Reference FASTA and FAI index files
+    - bam:
+        type: file
+        description: Aligned BAM file
+    - bai:
+        type: file
+        description: Aligned BAM index
+    - vcf:
+        type: file
+        description: Variant VCF file
+    - tbi:
+        type: file
+        description: Variant VCF index
+output:
+  - jbrowse_dir:
+      - "${sample_id}":
+          type: directory
+          description: Pre-configured JBrowse 2 web directory
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

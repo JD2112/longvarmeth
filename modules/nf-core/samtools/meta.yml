@@ -1,0 +1,14 @@
+name: samtools
+description: Tools for manipulating next-generation sequencing data in SAM, BAM, and CRAM formats
+keywords:
+  - samtools
+  - bam
+  - sam
+  - sort
+  - fastq
+tools:
+  - samtools:
+      description: Tools for manipulating next-generation sequencing data.
+      homepage: http://www.htslib.org/
+authors:
+  - "@jyoda68"

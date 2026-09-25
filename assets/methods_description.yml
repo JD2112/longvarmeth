@@ -1,0 +1,16 @@
+id: "methods-description"
+section_name: "Methods Description"
+plot_type: "html"
+description: "Detailed description of the analytical methods used in this long-read pipeline."
+data: |
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #007bff;">
+        <h4>Long-Read Analysis Workflow</h4>
+        <p>This pipeline was executed using the Nextflow-based ONT Long-Read Analysis Pipeline. The workflow involves the following steps:</p>
+        <ul>
+            <li><strong>Basecalling & Demultiplexing:</strong> Raw POD5/FAST5 files were basecalled and demultiplexed on host GPUs using Oxford Nanopore's <em>Dorado</em>.</li>
+            <li><strong>Read QC & Assembly:</strong> Raw read statistics were evaluated using <em>cramino</em>, <em>FastQC</em>, and <em>NanoPlot</em>. De novo assemblies were generated using <em>Flye</em> and polished with <em>Medaka</em>. Quality of the assembly was assessed using <em>QUAST</em> and <em>BUSCO</em>.</li>
+            <li><strong>Alignment & Phasing:</strong> Reads were mapped to the reference genomes using <em>minimap2</em>, and methylation tags were transferred back using <em>pysam</em>. Read phasing and haplotagging were executed with <em>WhatsHap</em>.</li>
+            <li><strong>Variant & SV Calling:</strong> Small variants were called using <em>BCFtools</em>. Structural variants (SVs) were called using <em>Sniffles</em> and copy number variants (CNVs) with <em>CNVkit</em>.</li>
+            <li><strong>Methylation Calling & Visualisation:</strong> Modification base pileups (5mC/5hmC) were extracted using <em>modkit</em>. Detailed methylation profiles and alignments were visualized using <em>methylartist</em> and <em>JBrowse 2</em>.</li>
+        </ul>
+    </div>

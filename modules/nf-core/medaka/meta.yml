@@ -1,0 +1,32 @@
+name: medaka
+description: Sequence correction and assembly polishing for Oxford Nanopore reads
+keywords:
+  - medaka
+  - polishing
+  - consensus
+  - assembly
+tools:
+  - medaka:
+      description: Sequence correction tool provided by ONT Research.
+      homepage: https://github.com/nanoporetech/medaka
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - reads:
+        type: file
+        description: Input FASTQ reads
+    - assembly:
+        type: file
+        description: Draft assembly FASTA file
+output:
+  - polished_assembly:
+      - "${sample_id}_polished.fasta":
+          type: file
+          description: Polished consensus FASTA file
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

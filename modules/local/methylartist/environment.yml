@@ -1,0 +1,6 @@
+name: methylartist
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::methylartist=1.3.0

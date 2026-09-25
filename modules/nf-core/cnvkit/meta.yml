@@ -1,0 +1,37 @@
+name: cnvkit
+description: Copy number variant detection and visualization
+keywords:
+  - cnv
+  - copy number
+  - cnvkit
+tools:
+  - cnvkit:
+      description: Software toolkit for copy number analysis.
+      homepage: https://cnvkit.readthedocs.io/
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - bam:
+        type: file
+        description: Input BAM alignment file
+    - bai:
+        type: file
+        description: Input BAM index file
+  - - reference:
+        type: file
+        description: Reference FASTA file
+output:
+  - cnv_files:
+      - "${sample_id}.cns":
+          type: file
+          description: Copy number segment calls
+      - "${sample_id}-diagram.pdf":
+          type: file
+          description: Whole-genome copy number diagram plot
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

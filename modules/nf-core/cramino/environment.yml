@@ -1,0 +1,6 @@
+name: cramino
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::cramino=0.13.0

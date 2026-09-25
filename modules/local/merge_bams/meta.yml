@@ -1,0 +1,28 @@
+name: merge_bams
+description: Merge BAM files or prepare direct BAM inputs for longvarmeth
+keywords:
+  - bam
+  - merge
+  - samtools
+tools:
+  - samtools:
+      description: Tools for manipulating next-generation sequencing data.
+      homepage: http://www.htslib.org/
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - bam_input:
+        type: file
+        description: Directory containing multiple BAM files or a single BAM file
+output:
+  - bam:
+      - "${sample_id}_merged.bam":
+          type: file
+          description: Merged or consolidated BAM file
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"

@@ -1,0 +1,12 @@
+name: snpeff
+description: Genetic variant annotation and functional effect prediction
+keywords:
+  - annotation
+  - snpeff
+  - variants
+tools:
+  - snpeff:
+      description: Genetic variant annotation and effect prediction toolbox.
+      homepage: https://pcingola.github.io/SnpEff/
+authors:
+  - "@jyoda68"

@@ -1,0 +1,35 @@
+name: ont-modkit
+description: Tools for working with modified bases from Oxford Nanopore sequencers
+keywords:
+  - methylation
+  - modkit
+  - cpg
+  - modified bases
+tools:
+  - ont-modkit:
+      description: Analysis of modified bases from ONT sequencers.
+      homepage: https://github.com/nanoporetech/modkit
+input:
+  - - sample_id:
+        type: string
+        description: Unique sample identifier
+    - bam:
+        type: file
+        description: Input BAM alignment file with MM/ML tags
+    - bai:
+        type: file
+        description: Input BAM index file
+  - - ref:
+        type: file
+        description: Reference FASTA file
+output:
+  - bed:
+      - "${sample_id}_mods.bed":
+          type: file
+          description: BedMethyl file containing aggregated modified base frequencies
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+authors:
+  - "@jyoda68"
