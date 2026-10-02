@@ -1,6 +1,15 @@
 # longvarmeth
 
+[![quindecagon](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/quindecagon.json)](https://github.com/JD2112/quindecagon)
+[![nf-core lint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/nfcore_lint.json)](https://nf-co.re)
+[![SBOM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/syft.json)](https://github.com/anchore/syft)
+[![secrets](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/secrets.json)](https://github.com/gitleaks/gitleaks)
+[![code style](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/black.json)](https://github.com/psf/black)
+[![flake8](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/flake8.json)](https://flake8.pycqa.org)
+[![R audit](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/r_audit.json)](https://github.com/r-lib/lintr)
+
 A modular, robust Nextflow DSL2 pipeline for long-read (ONT) sequencing data. It supports GPU-accelerated basecalling/demux on the host, QC, *de novo* assembly, polishing, reference alignment, methylation tag transfer, variant calling (SNV/InDel/SV/CNV), allele-specific phasing, and interactive visualization (JBrowse 2 / Methylartist / MultiQC).
+
 
 ## Key Features
 * **Basecalling & Demultiplexing**: Host GPU-accelerated basecalling and barcode demultiplexing using ONT **Dorado**.
@@ -16,6 +25,8 @@ A modular, robust Nextflow DSL2 pipeline for long-read (ONT) sequencing data. It
   * 5mC / 5hmC modification pileup extraction using ONT **Modkit**.
 * **Interactive Visualization**: Automatically generates **JBrowse 2** interactive genome browser tracks and locus-specific modification plots with **Methylartist**.
 * **Multi-Species Support**: Pre-configured species profile flags (`-profile human`, `-profile eukaryote`, `-profile prokaryote`, `-profile virus`).
+
+![alt text](./docs/pipeline.png)
 
 ## Quickstart
 
