@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: jd21/quindecagon:0.4.0
+      options: --user root
 
     steps:
       - name: Check out pipeline code
@@ -184,6 +185,7 @@ jobs:
       - name: Deploy Badges to badges branch
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         run: |
+          git config --global --add safe.directory '*'
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
