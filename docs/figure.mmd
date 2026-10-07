@@ -1,0 +1,55 @@
+```
+graph TD
+    %% Styling Classes
+    classDef inputStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b;
+    classDef qcStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32;
+    classDef assemblyStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#ef6c00;
+    classDef alignStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#7b1fa2;
+    classDef variantStyle fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#c62828;
+    classDef methStyle fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#00695c;
+    classDef vizStyle fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#fbc02d;
+
+    %% Stations
+    subgraph Input ["Input & Pre-processing"]
+        A[ONT Long Reads / Pod5]:::inputStyle --> B[Dorado Basecalling & Demultiplexing]:::inputStyle
+    end
+
+    subgraph QC ["Quality Control Line"]
+        B --> C1[FastQC]:::qcStyle
+        B --> C2[Cramino]:::qcStyle
+        B --> C3[NanoPlot]:::qcStyle
+    end
+
+    subgraph Assembly ["De Novo Assembly Line"]
+        B --> D1[Flye: De Novo Assembly]:::assemblyStyle
+        D1 --> D2[QUAST & BUSCO: Evaluation]:::assemblyStyle
+        D2 --> D3[Medaka: Consensus Polishing]:::assemblyStyle
+    end
+
+    subgraph Alignment ["Alignment & Modification Line"]
+        B --> E[Minimap2: Reference Alignment & MM/ML Tag Preservation]:::alignStyle
+    end
+
+    subgraph Variants ["Variant Calling & Annotation Line"]
+        E --> F1[BCFtools: SNV / InDel]:::variantStyle
+        E --> F2[Sniffles2: Structural Variants]:::variantStyle
+        E --> F3[CNVkit: Copy Number Variants]:::variantStyle
+        F1 & F2 & F3 --> F4[SnpEff & Ensembl VEP: Annotation]:::variantStyle
+    end
+
+    subgraph Methylation ["Methylation & Phasing Line"]
+        E --> G1[ONT Modkit: 5mC / 5hmC Pileup]:::methStyle
+        E --> G2[WhatsHap: Phasing & Haplotagging]:::methStyle
+    end
+
+    subgraph Visualization ["Reporting & Visualization Line"]
+        C1 & C2 & C3 --> H[MultiQC]:::vizStyle
+        G1 --> I1[Methylartist: Locus Plots]:::vizStyle
+        E & F1 & F2 & F3 & G2 --> I2[JBrowse 2 Tracks]:::vizStyle
+    end
+
+    %% Connections across lines
+    C3 --> E
+    D3 --> E
+    G2 --> I1
+```
