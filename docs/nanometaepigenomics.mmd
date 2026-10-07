@@ -1,0 +1,97 @@
+%%metro title: nanometaepigenomics
+%%metro style: nfcore
+
+%% Simplified, optimized metro lines to prevent routing collisions
+%%metro line: input | Core Processing Trunk | #01579b
+%%metro line: decontam | Host Decontamination | #7b1fa2
+%%metro line: assembly | Assembly & MGE | #ef6c00
+%%metro line: binning | Binning & MAG | #2e7d32
+%%metro line: epigenomics | Epigenomics & Linkage | #00695c
+%%metro line: annotation | Surveillance & Annotation | #c62828
+
+%%metro grid: Input | 0,0
+%%metro grid: Decontamination | 1,0
+%%metro grid: Assembly | 2,0
+%%metro grid: Binning | 3,0
+%%metro grid: Epigenomics | 1,1
+%%metro grid: Annotation | 2,1
+%%metro grid: Reporting | 3,1
+
+graph LR
+    %% Stations Grouped into Sections
+    subgraph Input ["Input & Preprocessing Lane"]
+        A[ONT Raw Reads]
+        B[Dorado Basecalling]
+        C[Porechop & Filtlong]
+        D[NanoPlot QC]
+    end
+
+    subgraph Decontamination ["Host Decontamination Lane"]
+        E1[Stage 1: Human Depletion]
+        E2[Stage 2: Matrix Depletion]
+    end
+
+    subgraph Assembly ["De Novo Assembly & MGE Lane"]
+        F1[metaFlye Assembly]
+        F2[geNomad Elements]
+    end
+
+    subgraph Binning ["Binning & MAG Lane"]
+        G1[MetaBAT2 Binning]
+        G2[CheckM2 Evaluation]
+        G3[GTDB-Tk Classification]
+    end
+
+    subgraph Epigenomics ["Epigenomics & Linkage Lane"]
+        H1[Modkit Pileup]
+        H2[Nanomotif Discovery]
+    end
+
+    subgraph Annotation ["Surveillance & Functional Annotation Lane"]
+        I1[AMRFinderPlus AMR]
+        I2[ABRICATE Virulence]
+        I3[PlasmidFinder Typing]
+        I4[Bakta Annotation]
+    end
+
+    subgraph Reporting ["Clinical Reporting & Integration Lane"]
+        J1[Clinical TSV Report]
+        J2[MultiQC Aggregation]
+    end
+
+    %% --- Streamlined Track Routing ---
+    
+    %% Main Backbone Line
+    A -->|input| B
+    B -->|input,epigenomics| C
+    C -->|input,epigenomics| D
+    D -->|input| E1
+    E1 -->|decontam| E2
+    
+    %% Assembly & Binning
+    E2 -->|assembly| F1
+    F1 -->|assembly| F2
+    F1 -->|binning| G1
+    G1 -->|binning| G2
+    G2 -->|binning| G3
+    
+    %% Epigenomics
+    D -->|epigenomics| H1
+    F1 -->|epigenomics| H2
+    F2 -->|epigenomics| H2
+    G3 -->|epigenomics| H2
+    
+    %% Surveillance Annotations (Bundled to avoid intersecting paths)
+    G3 -->|annotation| I1
+    G3 -->|annotation| I2
+    G3 -->|annotation| I4
+    F2 -->|annotation| I3
+    
+    %% Output Consolidation Lines
+    D -->|input| J2
+    I1 -->|annotation| J1
+    I2 -->|annotation| J1
+    I3 -->|annotation| J1
+    I4 -->|annotation| J1
+    H2 -->|epigenomics| J1
+
