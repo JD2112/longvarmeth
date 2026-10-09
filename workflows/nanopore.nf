@@ -33,22 +33,10 @@ workflow NANOPORE_PIPELINE {
     def raw_runs = samples_ch.filter { it[2] == 'pod5' || it[2] == 'fast5' }
     def direct_bam_runs = samples_ch.filter { it[2] == 'bam' }
 
-    // Determine if there are raw (pod5/fast5) runs to basecall
-    def has_raw_runs = false
-    samplesheet_file.splitCsv(header: true).each { row ->
-        def type = row.input_type?.toLowerCase()?.trim()
-        if (type == 'pod5' || type == 'fast5') {
-            has_raw_runs = true
-        }
-    }
-
-    // 2. Basecall & Demux (for raw pod5/fast5) only if raw runs exist
-    def basecalled_bams = Channel.empty()
-    if (has_raw_runs) {
-        BASECALL_DEMUX(raw_runs)
-        basecalled_bams = BASECALL_DEMUX.out.demux_bams
-        ch_versions = ch_versions.mix(BASECALL_DEMUX.out.versions)
-    }
+    // 2. Basecall & Demux (for raw pod5/fast5)
+    BASECALL_DEMUX(raw_runs)
+    def basecalled_bams = BASECALL_DEMUX.out.demux_bams
+    ch_versions = ch_versions.mix(BASECALL_DEMUX.out.versions)
 
     // Format direct BAMs to match (sample_id, bam)
     def direct_bams_raw = direct_bam_runs.map { run_id, input_path, input_type, kit, model, modified_bases_model ->
