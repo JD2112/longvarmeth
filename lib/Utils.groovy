@@ -1,4 +1,4 @@
-// workflows/utils.nf
+// lib/Utils.groovy
 // Helper utilities for parameter validation, summary printing, and run completion
 
 class Utils {
