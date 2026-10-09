@@ -40,7 +40,7 @@ Work Dir     : ${workflow.workDir}
         log.info summary
     }
 
-    public static void pipelineCompleted(workflow, log) {
+    public static void pipelineCompleted(workflow, params, log) {
         if (workflow.success) {
             log.info """
 ================================================================================

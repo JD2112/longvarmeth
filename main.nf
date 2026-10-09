@@ -30,7 +30,7 @@ workflow {
 }
 
 workflow.onComplete {
-    Utils.pipelineCompleted(workflow, log)
+    Utils.pipelineCompleted(workflow, params, log)
 }
 
 
