@@ -30,7 +30,7 @@ workflow BASECALL_DEMUX {
     
     DORADO_DEMUX(demux_inputs)
 
-    def demux_bams = DORADO_DEMUX.out.bams
+    demux_bams = DORADO_DEMUX.out.bams
         .transpose()
         .map { run_id, bam ->
             def barcode = bam.name.replaceAll(/.*_(barcode\d+)\.bam/, '$1')
@@ -42,6 +42,6 @@ workflow BASECALL_DEMUX {
         .filter { it[0] !=~ /.*unclassified.*/ }
 
     emit:
-    demux_bams = demux_bams
+    demux_bams
     versions   = ch_versions
 }
