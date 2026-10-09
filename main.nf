@@ -19,7 +19,6 @@ def logo = """
 
 log.info logo
 
-include { Utils } from './workflows/utils'
 include { NANOPORE_PIPELINE } from './workflows/nanopore'
 
 workflow {
