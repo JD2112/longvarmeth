@@ -14,6 +14,7 @@ process DORADO_BASECALL {
     mkdir -p models
     ${params.dorado_bin} basecaller \\
         --models-directory models \\
+        --recursive \\
         ${model} \\
         ${pod5_dir} \\
         -x ${params.gpu_devices} \\
