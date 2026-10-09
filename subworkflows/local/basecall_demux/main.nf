@@ -42,6 +42,6 @@ workflow BASECALL_DEMUX {
         .filter { it[0] !=~ /.*unclassified.*/ }
 
     emit:
-    demux_bams // tuple(sample_id, bam)
+    demux_bams = demux_bams
     versions   = ch_versions
 }
