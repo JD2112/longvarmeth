@@ -3,7 +3,7 @@ process TRANSFER_TAGS {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "quay.io/biocontainers/pysam:0.21.0--py310hc2720c6_1"
+    container "quay.io/biocontainers/pysam:0.22.0--py39hcada746_0"
 
     input:
     tuple val(sample_id), path(mapped_bam), path(mapped_bai), path(source_bam)
