@@ -6,7 +6,7 @@ process DORADO_DEMUX {
     tuple val(run_id), path(basecalled_bam), val(kit)
 
     output:
-    tuple val(run_id), path("demux/*.bam"), emit: bams
+    tuple val(run_id), path("demux/**/*.bam"), emit: bams
 
     script:
     """
