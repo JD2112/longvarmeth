@@ -3,7 +3,7 @@ process CRAMINO {
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
-    container "quay.io/biocontainers/cramino:0.13.0--h03027b5_0"
+    container "quay.io/biocontainers/cramino:1.3.0--h3dc2dae_0"
 
     input:
     tuple val(sample_id), path(bam)
