@@ -14,7 +14,7 @@ process MODKIT_PILEUP {
     path "versions.yml"                                , emit: versions
 
     script:
-    def args = task.ext.args ?: '--cpg --modified-bases C:m'
+    def args = task.ext.args ?: '--cpg --modified-bases C:m --no-filtering'
     """
     modkit pileup ${bam} ${sample_id}_mods.bed --ref ${ref} --threads ${task.cpus ?: 8} ${args}
 
