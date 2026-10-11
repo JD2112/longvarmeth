@@ -33,10 +33,8 @@ workflow BASECALL_DEMUX {
     demux_bams = DORADO_DEMUX.out.bams
         .transpose()
         .map { run_id, bam ->
-            def barcode = bam.name.replaceAll(/.*_(barcode\d+)\.bam/, '$1')
-            if (barcode == bam.name) {
-                barcode = "unclassified"
-            }
+            def barcodeMatcher = bam.name =~ /(barcode\d+)/
+            def barcode = barcodeMatcher ? barcodeMatcher[0][1] : "unclassified"
             return tuple("${run_id}_${barcode}", bam)
         }
         .filter { it[0] !=~ /.*unclassified.*/ }
