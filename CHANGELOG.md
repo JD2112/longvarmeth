@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-10-12
+
+### Added
+- **Unified Dual-Platform Support (Oxford Nanopore + PacBio HiFi)**:
+  - Input ingestion accepts PacBio HiFi / Revio unaligned and aligned BAMs (`pacbio_bam`, `pacbio_hifi`, `hifi`, `ubam`) with preserved `MM`/`ML` kinetic modification tags alongside raw ONT `pod5`/`fast5` and BAMs.
+  - Added dedicated PacBio aligner module **`PBMM2_ALIGN`** (`modules/nf-core/pbmm2/align`).
+  - Added tandem repeat genotyping via **`TRGT`** (`modules/nf-core/trgt`) for clinical repeat expansion disorders.
+  - Added integrated multi-variant co-phasing via **`HIPHASE`** (`modules/nf-core/hiphase`) co-phasing SNVs, SVs, and STRs.
+  - Added PacBio-optimized copy number alteration caller **`HIFINCNV`** (`modules/nf-core/hificnv`).
+- **Clinical Governance & PHI Sanitization (`JD2112/milou` Inspired)**:
+  - Implemented **`CLINICAL_GOVERNANCE`** subworkflow (`subworkflows/local/governance`).
+  - **`SANITIZE_METADATA`**: Automatically strips patient personal health information (PHI), hospital run barcodes, and sensitive SAM/VCF headers prior to publication.
+  - **`GENERATE_AUDIT_MANIFEST`**: Emits cryptographic SHA-256 file manifests (`<sample>_checksums.sha256`) and structured provenance run records (`<sample>_manifest.json`) for forensic determinism.
+- **Viral Genomics Profile**:
+  - Expanded `conf/virus.config` with specialized parameters for haploid, high-heterogeneity viral quasispecies detection (relaxed 5% frequency cutoffs), amplicon-aware quality filtering, and metagenomic assembly options.
+- **Dedicated CI/Test Suites**:
+  - Created symmetrical platform test profiles: `-profile test_ont` and `-profile test_pacbio` (using real public `nf-core/test-datasets` PacBio HiFi data).
+  - Documented testing procedures in `tests/README.md`.
+- **Pipeline Metro Architecture**:
+  - Re-rendered modern metro map architecture diagram using `nf-metro` (`docs/pipeline.svg`, `docs/pipeline.png`).
+
+---
+
 ## [0.2.1] - 2026-09-23
 
 ### Fixed

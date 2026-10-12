@@ -15,6 +15,11 @@ include { BCFTOOLS_CONCAT as COMPRESS_INDEX_SNPEFF } from '../../../modules/nf-c
 include { VEP_DOWNLOAD } from '../../../modules/nf-core/vep/download'
 include { VEP } from '../../../modules/nf-core/vep/annotate'
 
+include { PBMM2_ALIGN } from '../../../modules/nf-core/pbmm2/align'
+include { TRGT } from '../../../modules/nf-core/trgt'
+include { HIPHASE } from '../../../modules/nf-core/hiphase'
+include { HIFINCNV } from '../../../modules/nf-core/hificnv'
+
 workflow ALIGN_VARIANT {
     take:
     fastq_ch // tuple(sample_id, fastq)
@@ -111,22 +116,33 @@ workflow ALIGN_VARIANT {
 
         // Phasing & Haplotagging
         if (params.species == 'human' || params.enable_phasing) {
-            def phase_input = ch_vcf_nuc
-                .join(ch_tagged_nuc_bam_bai)
-                .map { sample_id, vcf, tbi, bam, bai ->
-                    tuple(sample_id, vcf, bam, bai)
-                }
-            WHATSHAP_PHASE(phase_input, ref_nuc_with_fai)
-            ch_versions = ch_versions.mix(WHATSHAP_PHASE.out.versions)
+            if (params.platform == 'pacbio' || params.phasing_tool == 'hiphase') {
+                def hiphase_input = ch_tagged_nuc_bam_bai
+                    .join(ch_vcf_nuc)
+                    .map { sample_id, bam, bai, vcf, tbi ->
+                        tuple(sample_id, bam, bai, vcf, tbi, [], [])
+                    }
+                HIPHASE(hiphase_input, ref_nuc_path)
+                ch_versions = ch_versions.mix(HIPHASE.out.versions)
+                ch_phased_bam_bai = HIPHASE.out.phased_bam_bai
+            } else {
+                def phase_input = ch_vcf_nuc
+                    .join(ch_tagged_nuc_bam_bai)
+                    .map { sample_id, vcf, tbi, bam, bai ->
+                        tuple(sample_id, vcf, bam, bai)
+                    }
+                WHATSHAP_PHASE(phase_input, ref_nuc_with_fai)
+                ch_versions = ch_versions.mix(WHATSHAP_PHASE.out.versions)
 
-            def haplotag_input = WHATSHAP_PHASE.out.phased_vcf
-                .join(ch_tagged_nuc_bam_bai)
-                .map { sample_id, vcf, tbi, bam, bai ->
-                    tuple(sample_id, vcf, tbi, bam, bai)
-                }
-            WHATSHAP_HAPLOTAG(haplotag_input, ref_nuc_with_fai)
-            ch_versions = ch_versions.mix(WHATSHAP_HAPLOTAG.out.versions)
-            ch_phased_bam_bai = WHATSHAP_HAPLOTAG.out.haplotagged_bam_bai
+                def haplotag_input = WHATSHAP_PHASE.out.phased_vcf
+                    .join(ch_tagged_nuc_bam_bai)
+                    .map { sample_id, vcf, tbi, bam, bai ->
+                        tuple(sample_id, vcf, tbi, bam, bai)
+                    }
+                WHATSHAP_HAPLOTAG(haplotag_input, ref_nuc_with_fai)
+                ch_versions = ch_versions.mix(WHATSHAP_HAPLOTAG.out.versions)
+                ch_phased_bam_bai = WHATSHAP_HAPLOTAG.out.haplotagged_bam_bai
+            }
         }
 
         // Structural Variants & CNV
@@ -134,8 +150,20 @@ workflow ALIGN_VARIANT {
             SNIFFLES(ch_tagged_nuc_bam_bai, ref_nuc_path)
             ch_versions = ch_versions.mix(SNIFFLES.out.versions)
 
-            CNVKIT(ch_tagged_nuc_bam_bai, ref_nuc_path)
-            ch_versions = ch_versions.mix(CNVKIT.out.versions)
+            if (params.platform == 'pacbio' && params.cnv_caller == 'hificnv') {
+                HIFINCNV(ch_tagged_nuc_bam_bai, ref_nuc_path, [])
+                ch_versions = ch_versions.mix(HIFINCNV.out.versions)
+            } else {
+                CNVKIT(ch_tagged_nuc_bam_bai, ref_nuc_path)
+                ch_versions = ch_versions.mix(CNVKIT.out.versions)
+            }
+        }
+
+        // Tandem Repeat Genotyping (TRGT)
+        if (params.enable_trgt && params.repeat_bed) {
+            def repeat_bed_file = file(params.repeat_bed)
+            TRGT(ch_tagged_nuc_bam_bai, ref_nuc_path, repeat_bed_file)
+            ch_versions = ch_versions.mix(TRGT.out.versions)
         }
     }
 

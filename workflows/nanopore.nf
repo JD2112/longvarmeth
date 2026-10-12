@@ -5,6 +5,7 @@ include { ANNOTATION_VIS } from '../subworkflows/local/annotation_vis'
 include { MULTIQC } from '../modules/nf-core/multiqc'
 include { DUMP_MQC_METADATA } from '../modules/local/dump_mqc_metadata'
 include { MERGE_BAMS } from '../modules/local/merge_bams'
+include { CLINICAL_GOVERNANCE } from '../subworkflows/local/governance'
 
 workflow NANOPORE_PIPELINE {
     // 1. Parse samplesheet
@@ -31,7 +32,7 @@ workflow NANOPORE_PIPELINE {
 
     // Split input channels based on input type
     def raw_runs = samples_ch.filter { it[2] == 'pod5' || it[2] == 'fast5' }
-    def direct_bam_runs = samples_ch.filter { it[2] == 'bam' }
+    def direct_bam_runs = samples_ch.filter { it[2] in ['bam', 'pacbio_bam', 'pacbio_hifi', 'hifi', 'ubam'] }
 
     // 2. Basecall & Demux (for raw pod5/fast5)
     BASECALL_DEMUX(raw_runs)
@@ -82,7 +83,18 @@ workflow NANOPORE_PIPELINE {
         ch_versions = ch_versions.mix(ANNOTATION_VIS.out.versions)
     }
 
-    // 6. MQC Metadata Generation
+    // 6. Clinical Governance & Audit Trail (milou-inspired)
+    if (params.enable_audit_trail || params.enable_phi_sanitization) {
+        def audit_targets = ALIGN_VARIANT.out.tagged_nuc_bam_bai
+            .join(ALIGN_VARIANT.out.vcf_nuc)
+            .map { sample_id, bam, bai, vcf, tbi ->
+                tuple(sample_id, [bam, bai, vcf, tbi])
+            }
+        CLINICAL_GOVERNANCE(ALIGN_VARIANT.out.tagged_nuc_bam_bai, audit_targets)
+        ch_versions = ch_versions.mix(CLINICAL_GOVERNANCE.out.versions)
+    }
+
+    // 7. MQC Metadata Generation
     def methods_template = file("${projectDir}/assets/methods_description.yml")
     DUMP_MQC_METADATA(methods_template)
 

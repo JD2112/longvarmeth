@@ -5,92 +5,92 @@
 %%metro line: qc | Quality Control | #2e7d32
 %%metro line: assembly | De Novo Assembly | #ef6c00
 %%metro line: alignment | Alignment | #7b1fa2
-%%metro line: variants | Variant Calling | #c62828
-%%metro line: methylation | Methylation & Phasing | #00695c
+%%metro line: variants | Variant Calling & Phasing | #c62828
+%%metro line: methylation | Epigenomics & Base Mods | #00695c
+%%metro line: governance | Clinical Governance | #1565c0
 %%metro line: viz | Reporting & Visualization | #fbc02d
 
 graph LR
     %% Stations Grouped into Sections
-    subgraph Input ["Input & Pre-processing"]
-        A[ONT Long Reads / Pod5]
-        B[Dorado Basecalling & Demultiplexing]
+    subgraph Input ["Input & Ingestion"]
+        A[ONT & PacBio Raw / BAM]
+        B[Basecalling & Input Normalizer]
     end
 
     subgraph QC ["Quality Control Line"]
-        C1[FastQC]
-        C2[Cramino]
-        C3[NanoPlot]
+        C1[FastQC & NanoPlot]
+        C2[Cramino & Mosdepth]
     end
 
     subgraph Assembly ["De Novo Assembly Line"]
-        D1[Flye: De Novo Assembly]
-        D2[QUAST & BUSCO: Evaluation]
-        D3[Medaka: Consensus Polishing]
+        D1[Flye & Hifiasm Assembly]
+        D2[Medaka / Racon Polishing]
+        D3[QUAST & BUSCO QC]
     end
 
-    subgraph Alignment ["Alignment & Modification Line"]
-        E[Minimap2: Reference Alignment]
+    subgraph Alignment ["Alignment Line"]
+        E[Minimap2 & pbmm2 Alignment]
     end
 
-    subgraph Variants ["Variant Calling & Annotation Line"]
-        F1[BCFtools: SNV / InDel]
-        F2[Sniffles2: Structural Variants]
-        F3[CNVkit: Copy Number Variants]
-        F4[SnpEff & Ensembl VEP: Annotation]
+    subgraph Variants ["Variant Calling & Phasing Line"]
+        F1[DeepVariant & Clair3 & BCFtools]
+        F2[Sniffles2 & Severus SVs]
+        F3[TRGT STR Genotyping]
+        F4[HiFiCNV & CNVkit]
+        F5[HiPhase & WhatsHap Phasing]
+        F6[SnpEff & Ensembl VEP]
     end
 
-    subgraph Methylation ["Methylation & Phasing Line"]
-        G1[ONT Modkit: 5mC / 5hmC Pileup]
-        G2[WhatsHap: Phasing & Haplotagging]
+    subgraph Methylation ["Epigenomics Line"]
+        G1[modkit pileup: 5mC / 5hmC / 6mA]
+        G2[pbcpgtools & DMR Calling]
     end
 
-    subgraph Visualization ["Reporting & Visualization Line"]
-        H[MultiQC]
-        I1[Methylartist: Locus Plots]
-        I2[JBrowse 2 Tracks]
+    subgraph Governance ["Clinical Governance"]
+        GOV1[SANITIZE_METADATA: PHI Scrub]
+        GOV2[GENERATE_AUDIT_MANIFEST]
     end
 
-    %% --- Track Routing & Connections ---
-    
-    %% Base input feeding multiple branches
+    subgraph Visualization ["Reporting & Visualization"]
+        H[MultiQC Report]
+        I1[Methylartist Locus Plots]
+        I2[JBrowse 2 Interactive Tracks]
+    end
+
+    %% Track Routing
     A -->|qc,assembly,alignment| B
     
-    %% Quality Control Branch
     B -->|qc| C1
     B -->|qc| C2
-    B -->|qc| C3
     C1 -->|qc| H
     C2 -->|qc| H
-    C3 -->|qc| H
     
-    %% Assembly Branch
     B -->|assembly| D1
     D1 -->|assembly| D2
     D2 -->|assembly| D3
     
-    %% Alignment Main Line
     B -->|alignment| E
-    C3 -->|qc| E
-    D3 -->|assembly| E
     
-    %% Variants Branch
     E -->|variants| F1
     E -->|variants| F2
     E -->|variants| F3
-    F1 -->|variants| F4
-    F2 -->|variants| F4
-    F3 -->|variants| F4
+    E -->|variants| F4
+    F1 -->|variants| F5
+    F2 -->|variants| F5
+    F3 -->|variants| F5
+    F4 -->|variants| F5
+    F5 -->|variants| F6
     
-    %% Methylation Branch
     E -->|methylation| G1
-    E -->|methylation| G2
+    G1 -->|methylation| G2
     
-    %% Reporting & Visualizations
+    E -->|governance| GOV1
+    GOV1 -->|governance| GOV2
+    
     G1 -->|viz| I1
     G2 -->|viz| I1
     E -->|viz| I2
-    F1 -->|viz| I2
-    F2 -->|viz| I2
-    F3 -->|viz| I2
-    G2 -->|viz| I2
-
+    F5 -->|viz| I2
+    F6 -->|viz| I2
+    G1 -->|viz| I2
+    GOV2 -->|viz| H

@@ -1,0 +1,2 @@
+run_id,input_path,input_type,kit,model,modified_bases_model
+pacbio_test_sample,https://raw.githubusercontent.com/nf-core/test-datasets/refs/heads/pacvar/pacbio_data/1_A01/hifi_reads/m84036_240201_205955_s2.hifi_reads.bc2001_subsample.bam,pacbio_bam,Sequel_IIe,HiFi,5mC
