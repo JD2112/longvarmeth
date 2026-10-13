@@ -39,4 +39,12 @@ process VEP {
         vep: \$( vep --help 2>&1 | grep "ensembl-vep" | head -n 1 | sed -e "s/.*: //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.vep.vcf.gz
+    touch ${sample_id}.vep.vcf.gz.tbi
+    touch ${sample_id}.vep.summary.html
+    touch versions.yml
+    """
 }

@@ -23,4 +23,10 @@ process MODKIT_PILEUP {
         modkit: \$( modkit --version | sed -e "s/modkit //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_mods.bed
+    touch versions.yml
+    """
 }

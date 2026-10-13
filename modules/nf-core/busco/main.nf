@@ -30,4 +30,10 @@ process BUSCO {
         busco: \$( busco --version 2>&1 | head -n 1 | sed -e "s/BUSCO //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch busco_${sample_id}
+    touch versions.yml
+    """
 }

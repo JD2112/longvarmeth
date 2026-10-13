@@ -5,8 +5,9 @@ process MULTIQC {
     container "quay.io/biocontainers/multiqc:1.18--pyhdfd78af_0"
 
     input:
-    path 'qc_files/*'
+    path(qc_files, stageAs: "?/*")
     path(multiqc_config)
+
 
     output:
     path "*multiqc_report.html", emit: report
@@ -23,5 +24,12 @@ process MULTIQC {
     "${task.process}":
         multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
     END_VERSIONS
+    """
+
+    stub:
+    """
+    touch samplemultiqc_report.html
+    touch sample_data
+    touch versions.yml
     """
 }

@@ -20,7 +20,8 @@ workflow STRUCTURAL_VARIANTS {
     // 1. Structural Variants (Sniffles2)
     SNIFFLES(aligned_bam_bai, ref_nuc_path)
     ch_versions = ch_versions.mix(SNIFFLES.out.versions)
-    ch_sv_vcf = SNIFFLES.out.vcf_tbi
+    ch_sv_vcf = SNIFFLES.out.sv_vcf
+
 
     // 2. Copy Number Alterations (CNVkit / HiFiCNV)
     if (params.platform == 'pacbio' && params.cnv_caller == 'hificnv') {
@@ -30,8 +31,9 @@ workflow STRUCTURAL_VARIANTS {
     } else {
         CNVKIT(aligned_bam_bai, ref_nuc_path)
         ch_versions = ch_versions.mix(CNVKIT.out.versions)
-        ch_cnv_calls = CNVKIT.out.cns
+        ch_cnv_calls = CNVKIT.out.cnv_files
     }
+
 
     // 3. Short Tandem Repeats (TRGT)
     if (params.enable_trgt && params.repeat_bed) {

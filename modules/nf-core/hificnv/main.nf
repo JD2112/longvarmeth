@@ -36,10 +36,6 @@ process HIFINCNV {
     touch ${sample_id}.hificnv.vcf.gz
     touch ${sample_id}.hificnv.vcf.gz.tbi
     touch ${sample_id}.hificnv.copynumber.bedgraph
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        hificnv: 1.0.0
-    END_VERSIONS
+    touch versions.yml
     """
 }

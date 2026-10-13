@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nallo Report - Clinical Genomics</title>
+
+    <!-- External Assets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/ag-grid-community@30.0.0/styles/ag-grid.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/ag-grid-community@30.0.0/styles/ag-theme-alpine.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@30.0.0/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/igv@2.15.5/dist/igv.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2.5rem 2rem;
+            border-radius: 0 0 1.5rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tabs {
+            border-bottom: none;
+            margin-top: -1.2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .nav-link {
+            border: none !important;
+            color: rgba(40, 34, 34, 0.7);
+            font-weight: 600;
+            padding: 1.2rem 2.5rem;
+            border-radius: 0.8rem 0.8rem 0 0;
+            background: transparent !important;
+        }
+
+        .nav-link.active {
+            background: white !important;
+            color: #1e3c72 !important;
+            box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-wrap {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+            background: white;
+        }
+
+        .section-title {
+            border-left: 5px solid var(--accent-color);
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1e3c72;
+        }
+
+        #igv-container {
+            border: 1px solid #dee2e6;
+            border-radius: 0.8rem;
+            min-height: 800px;
+            background: white;
+        }
+
+        .ag-theme-alpine {
+            height: 480px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: auto;
+            resize: vertical;
+        }
+
+        .status-pill {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .bg-asm {
+            background-color: #fff4e6;
+            color: #d9480f;
+            border: 1px solid #ffd8a8;
+        }
+
+        .bg-methyl {
+            background-color: #ebfbee;
+            color: #2b8a3e;
+            border: 1px solid #b2f2bb;
+        }
+
+        .bg-unmeth {
+            background-color: #f3f0ff;
+            color: #5f3dc4;
+            border: 1px solid #d0bfff;
+        }
+
+        .bg-inconclusive {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .bg-normal {
+            background-color: #e7f5ff;
+            color: #1971c2;
+            border: 1px solid #a5d8ff;
+        }
+
+        .text-asm {
+            color: #d9480f !important;
+        }
+
+        .bg-qc-partial {
+            background-color: #fff9db;
+            color: #f08c00;
+            border: 1px solid #ffe066;
+        }
+
+        .methyl-bar-wrap {
+            height: 12px;
+            background: #eee;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            margin-top: 4px;
+            border: 1px solid #ddd;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .methyl-bar-wrap.in-asm-range {
+            opacity: 1;
+            border: 1px solid #ced4da;
+        }
+
+        .methyl-bar-wrap.dimmed-non-asm {
+            opacity: 0.35;
+            filter: grayscale(0.5);
+            border: 1px dashed #adb5bd;
+        }
+
+        .methyl-bar-wrap.dimmed-non-asm:hover {
+            opacity: 0.9;
+            filter: grayscale(0);
+        }
+
+        .bar-h1 {
+            background: #3498db;
+        }
+
+        .bar-h2 {
+            background: #e74c3c;
+        }
+
+        .log-panel {
+            background: #212529;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            padding: 10px;
+            border-radius: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .stat-card {
+            border-radius: 12px;
+            padding: 1.5rem !important;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #eef2f7;
+            transition: all 0.3s ease;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .stat-card .h4 {
+            font-size: 2.2rem !important;
+            font-weight: 900 !important;
+            color: #2c3e50;
+            margin: 0.2rem 0;
+            line-height: 1;
+        }
+
+        .stat-card .text-muted {
+            font-size: 0.8rem !important;
+            font-weight: 800 !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #95a5a6 !important;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .small {
+            font-weight: 700;
+        }
+
+        footer {
+            background: #f1f3f5;
+            padding: 1.2rem 2.5rem;
+            font-size: 0.8rem;
+            color: #495057;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .diag-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .diag-card {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            text-align: center;
+        }
+
+        .diag-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #2a5298;
+            display: block;
+            margin: 0.5rem 0;
+        }
+        .sidebar-hidden {
+            display: none !important;
+        }
+
+        .main-full {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .table-container-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 10000 !important;
+            background: white !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            border-radius: 0 !important;
+        }
+
+        #myGrid.fullscreen-grid {
+            height: calc(100vh - 120px) !important;
+        }
+
+        .toggle-btn {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn:hover {
+            opacity: 0.8;
+        }
+
+        .diag-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hero-section text-center position-relative">
+        <button class="btn btn-sm btn-light position-absolute start-0 ms-4 top-50 translate-middle-y shadow-sm" onclick="toggleSidebar()">
+            <i class="bi bi-layout-sidebar-inset"></i> <span id="sidebar-toggle-text">Hide Sidebar</span>
+        </button>
+        <h1 class="fw-bold mb-1">gms-nallo: Methylation Analysis Dashboard</h1>
+        <div class="d-flex justify-content-center gap-2 mt-2">
+            <span class="badge bg-white text-primary shadow-sm">gms-nallo v0.12.0</span>
+            <span class="badge bg-white text-primary shadow-sm">Genome: GRCh38</span>
+        </div>
+    </div>
+
+    <div class="content-wrap container-fluid px-4">
+        <div id="dashboard" class="mb-5">
+            <div class="row" id="dashboard-row">
+                <div class="col-lg-3" id="sidebar-col">
+                    <div class="card p-3 mb-3">
+                        <div class="section-title">Workflow Summary</div>
+                        <canvas id="statsChart" style="max-height: 110px;"></canvas>
+                        <div id="asm-count-text" class="text-center small fw-bold text-danger mt-2"></div>
+                    </div>
+
+                    <div class="card p-3 mb-3 shadow-sm">
+                        <div class="section-title"><i class="bi bi-info-circle me-2"></i>Quick Guide</div>
+                        <div class="small text-muted mb-2 border-start border-4 border-info ps-2">Optimized for Chrome/Safari.</div>
+                        <div class="small text-muted mb-2 border-start border-4 border-danger ps-2">NOTE: Loading large BAM in IGV may take 5-10 seconds. BAM index (.bai) is mandatory</div>
+                        <ol class="small text-muted ps-3 mb-3">
+                            <li><strong>Filtering</strong>: Use the Search box on the table (right).</li>
+                            <li><strong>Columns</strong>: Use the <strong class="text-primary">Columns</strong> dropdown to hide/show specific fields.</li>
+                            <li><strong>Sort/Move</strong>: Sort via headers or <strong class="text-primary">drag headers</strong> to re-arrange columns.</li>
+                            <li><strong>Pagination</strong>: Adjust rows (10-100) at top-right of table. Scroll down to select the row.</li>
+                            <li><strong>Sample Status</strong>: Status bars show Methylated <strong class="text-primary"> (Blue)</strong> vs Unmethylated <strong class="text-danger"> (Red)</strong> %.</li>
+                            <li><strong>Filters Dropdown</strong>: Use the <strong class="text-primary">Filters</strong> dropdown to toggle on-demand filters like <strong>"Unique Loci"</strong> (removes duplicate/triplicate rows).</li>
+                        </ol>
+                        <details class="small mt-3 mb-2">
+                            <summary class="fw-bold text-primary uppercase" style="cursor: pointer; font-size: 0.7rem; letter-spacing: 1px;">Data Mapping Reference</summary>
+                            <div class="mt-2 border rounded p-2 bg-white shadow-sm">
+                                <table class="table table-sm table-borderless mb-0" style="font-size: 0.65rem;">
+                                    <thead>
+                                        <tr class="border-bottom">
+                                            <th>Dashboard Field</th>
+                                            <th>CSV Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td><strong>expected_category</strong></td><td><code>expected_category</code></td></tr>
+                                        <tr><td><strong>ASM Range (35-65%)</strong></td><td>Derived: [0.35, 0.65] on <code>meth score</code></td></tr>
+                                        <tr><td><strong>external links</strong></td><td>gnomAD (G) & NCBI (N)</td></tr>
+                                        <tr><td><strong>meth score</strong></td><td><code>mean_combined...</code></td></tr>
+                                        <tr><td><strong>unmeth score</strong></td><td><code>1 - mean_...</code></td></tr>
+                                        <tr><td><strong>Meth Delta</strong></td><td><code>mean_meth_delta</code> (H1 - H2)</td></tr>
+                                        <tr><td><strong>QC</strong></td><td><code>report_sum</code> + <code>qc_warn</code></td></tr>
+                                        <tr><td><strong>End Pos</strong></td><td><code>end</code></td></tr>
+                                        <tr><td><strong>Interval</strong></td><td><code>end - start</code></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="small mb-2">
+                            <summary class="fw-bold text-primary uppercase" style="cursor: pointer; font-size: 0.7rem; letter-spacing: 1px;">Result Interpretation</summary>
+                            <div class="mt-2 border rounded p-2 bg-white shadow-sm">
+                                <ul class="small text-muted ps-3 mb-0" style="font-size: 0.75rem;">
+                                    <li><strong class="text-asm">ASM</strong>: Allele-Specific Methylation (as est. by methbat).</li>
+                                    <li><strong class="text-secondary">ASM Range (35-65%)</strong>: Evaluated directly from the <code>meth score</code> (bulk aggregate methylation). Normal monoallelic ASM is expected between 0.35–0.65 (35–65%). Out-of-range loci are flagged (<strong class="text-primary">&lt;35% Hypo</strong> [Blue] or <strong class="text-danger">&gt;65% Hyper</strong> [Red]) and their visualization bars are dimmed.</li>
+                                    <li><strong class="text-primary" style="color: #6f42c1 !important;">Meth Delta</strong>: Difference in methylation between phased haplotypes (Haplotype 1 &minus; Haplotype 2). Values near &plusmn;1.0 indicate strong allele-specific asymmetry; values near 0.0 indicate symmetric biallelic methylation or unmethylation.</li>
+                                    <li><strong class="text-primary">G (gnomAD)</strong>: External link to gnomAD v4 Browser.</li>
+                                    <li><strong class="text-secondary">N (NCBI)</strong>: External link to NCBI Genome Data Viewer.</li>
+                                    <li><strong class="text-success">QC PASS</strong>: Both report_summary and qc_warn are 'PASS' (Green text).</li>
+                                    <li><strong class="text-warning">QC Warning</strong>: Either report_summary or qc_warn is not 'PASS' (Orange text).</li>
+                                    <li><strong class="text-danger">QC Failed</strong>: Both report_summary and qc_warn are not 'PASS' (Red text).</li>
+                                    <li><strong class="text-primary">meth score</strong>: Overall bulk methylated fraction (<code>mean_combined_methyl</code>, 0.0 to 1.0).</li>
+                                    <li><strong class="text-danger">unmeth score</strong>: Overall bulk unmethylated fraction (1 - meth score).</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+
+                    <div class="card p-3 mb-3">
+                        <div class="section-title">System Log</div>
+                        <div id="debug-log" class="log-panel">Ready.</div>
+                    </div>
+                </div>
+                <div class="col-lg-9" id="main-col">
+                    <div class="row mb-3 g-3">
+                        <div class="col-md-3">
+                            <div class="card p-2 stat-card shadow-sm h-100">
+                                <div class="text-muted small fw-bold uppercase">Active Sample Context</div>
+                                <div class="h4 mb-0 text-primary" id="stat-cvg">--</div>
+                                <div class="small text-muted" id="stat-cvg-detail">Select a row to begin</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card p-2 stat-card shadow-sm h-100">
+                                <div class="text-muted small fw-bold uppercase">Sample Status Tally</div>
+                                <div class="h4 mb-0" id="stat-regions">--</div>
+                                <div class="small text-muted">ASM regions detected</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card p-2 stat-card shadow-sm h-100 overflow-hidden" style="min-height: 140px;">
+                                <div class="text-muted small fw-bold">Distribution</div>
+                                <div style="height: 100px; width: 100%; margin-top: 5px;">
+                                    <canvas id="sampleBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card p-2 stat-card shadow-sm h-100">
+                                <div class="text-muted small fw-bold uppercase">QC Pass Count</div>
+                                <div class="h4 mb-0 text-success" id="stat-qc-pass">0</div>
+                                <div class="small text-muted">Regions passing all QC</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card p-3 mb-3" id="table-card-container">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="section-title m-0">Methylation Status (Click Header to Sort)</div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="small text-muted fw-bold d-none d-md-inline">Rows:</span>
+                                <select class="form-select form-select-sm shadow-none" style="width: 75px;" onchange="onPageSizeChanged(this.value)">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-view-list me-1"></i> Columns
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end p-2 shadow-sm" id="column-toggle-list" style="min-width: 200px;">
+                                        <!-- Populated by JS -->
+                                    </ul>
+                                </div>
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="filters-btn">
+                                        <i class="bi bi-funnel me-1"></i> Filters
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end p-2 shadow-sm" id="filters-dropdown-menu" style="min-width: 220px;">
+                                        <li class="px-2 py-1">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="filter-unique-loci" onchange="toggleDeduplication(this.checked)">
+                                                <label class="form-check-label small" for="filter-unique-loci">
+                                                    Unique Loci <span class="badge bg-secondary ms-1" id="filter-unique-badge"></span>
+                                                </label>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <button class="btn btn-sm btn-outline-success" onclick="addRow()"><i
+                                        class="bi bi-plus-lg me-1"></i> Add Locus</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportData()"><i
+                                        class="bi bi-download me-1"></i> Export</button>
+                                <button class="btn btn-sm btn-outline-info" id="igv-toggle-btn" onclick="toggleIGV()">
+                                    <i class="bi bi-eye me-1"></i> Launch IGV</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleFullscreen()">
+                                    <i class="bi bi-arrows-fullscreen me-1"></i> <span id="fs-btn-text">Fullscreen</span>
+                                </button>
+                                <input type="text" id="quick-filter" class="form-control form-control-sm shadow-none"
+                                    style="width: 200px;" placeholder="Search Locus..." oninput="onFilterChanged()">
+                            </div>
+                        </div>
+                        <div id="myGrid" class="ag-theme-alpine"></div>
+                    </div>
+
+                    <!-- Interactive GoS Cohort Reference Benchmark Card -->
+                    <div class="card p-3 mb-4 shadow-sm" id="gos-benchmark-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <div>
+                                <div class="section-title m-0 d-flex align-items-center flex-wrap gap-2">
+                                    <i class="bi bi-graph-up-arrow text-primary"></i>
+                                    <span>Cohort Reference Benchmark</span>
+                                    <span class="badge bg-light text-secondary border shadow-none" style="font-size: 0.7rem; font-weight: 500;">
+                                        35%–65% Normative Window
+                                    </span>
+                                    <span id="gos-ref-status-badge" class="badge bg-primary-subtle text-primary border shadow-none" style="font-size: 0.7rem; font-weight: 600;">
+                                        <i class="bi bi-shield-check me-1"></i>Reference: Built-in GoS (288 Controls)
+                                    </span>
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                    Comparing sample bulk methylation against population reference cohort Median, IQR &amp; 95% Normal Range.
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary active" id="btn-gos-filter-all" onclick="filterGoSChart('all')">All Loci</button>
+                                    <button type="button" class="btn btn-outline-secondary" id="btn-gos-filter-aberrant" onclick="filterGoSChart('selected')">Selected Only</button>
+                                </div>
+                                <input type="file" id="gos-file-input" accept=".tsv,.csv,.txt,.json" style="display: none;" onchange="handleGoSReferenceUpload(event)">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-success" type="button" onclick="document.getElementById('gos-file-input').click()" title="Upload custom reference cohort data (TSV, CSV, or JSON)">
+                                        <i class="bi bi-cloud-arrow-up me-1"></i> Upload Reference
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-gos-ref-reset" onclick="resetGoSReferenceData()" style="display: none;" title="Reset back to built-in GoS 288-control reference">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="downloadGoSReferenceTemplate()" title="Download current reference data as a TSV template">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#gosTableCollapse" aria-expanded="false" id="btn-gos-table-toggle">
+                                    <i class="bi bi-table me-1"></i> Reference Table
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportGoSChart()">
+                                    <i class="bi bi-camera me-1"></i> Export Plot
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Chart Canvas Container -->
+                        <div style="position: relative; width: 100%; min-height: 440px;" class="border rounded p-2 bg-white mt-1">
+                            <canvas id="gosReferenceChart"></canvas>
+                        </div>
+
+                        <!-- Collapsible GoS Statistics Table -->
+                        <div class="collapse mt-3" id="gosTableCollapse">
+                            <div class="table-responsive border rounded p-2 bg-light">
+                                <table class="table table-sm table-hover mb-0" style="font-size: 0.75rem;" id="gos-stats-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Syndrome / Locus</th>
+                                            <th>Genomic Interval</th>
+                                            <th>GoS Control Locus</th>
+                                            <th>GoS Controls (N)</th>
+                                            <th>GoS Median</th>
+                                            <th>GoS IQR (Q1–Q3)</th>
+                                            <th>95% Normal Range</th>
+                                            <th>Sample Score</th>
+                                            <th>Imprinting Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gos-stats-table-body">
+                                        <!-- Populated dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm overflow-hidden mb-4" id="igv-container-card" style="display: none;">
+                        <div class="bg-white border-bottom shadow-sm">
+                            <details>
+                                <summary class="fw-bold text-primary small uppercase px-3 py-2" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
+                                    <i class="bi bi-info-circle-fill me-2"></i> How to Load & View Phased Methylation in IGV
+                                </summary>
+                                <div class="p-3 pt-0">
+                                    <div class="row g-3">
+                                        <div class="col-md-7 border-end">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-cloud-upload"></i> Step 1: Load BAM</span>
+                                                <span class="small fw-bold text-dark">Tracks > Local File... > Select Phased BAM & BAI</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-info-subtle text-info me-2"><i class="bi bi-cursor"></i> Step 2: Navigate</span>
+                                                <span class="small text-muted">Click any table row to copy locus, then paste into IGV search box.</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 ps-md-4">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="badge bg-secondary-subtle text-secondary me-2"><i class="bi bi-palette"></i> Step 3: Color</span>
+                                                <span class="small text-muted">Gear > Color by > base mod 2-color (5mC)</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-dark-subtle text-dark me-2"><i class="bi bi-layers"></i> Step 4: Group</span>
+                                                <span class="small text-muted">Gear > Group by > tag:HP (Separate H1/H2)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        <div style="height: 750px;">
+                            <iframe id="igv-iframe" src="https://igv.org/app/" style="width: 100%; height: 100%; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5" style="opacity: 0.15;">
+        
+        <div id="extra-info" class="mb-5">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card p-4 h-100 shadow-sm">
+                        <div class="section-title">Methods and Context</div>
+                        <p class="small text-muted">
+                            This report summarizes hg38 methylation loci identified by the <strong>gsm-nallo</strong> pipeline. 
+                            Methylation is phased using HiPhase and visualized using IGV-Web.
+                        </p>
+                        <div class="mt-3">
+                            <span class="section-title small fw-bold uppercase" style="font-size: 0.7rem;">Required Files</span>
+                            <ul class="small text-muted ps-3 mb-0" style="font-size: 0.75rem;">
+                                 <li><code>*methbat.csv</code> methbat results</li>
+                                <li><code>*haplotagged.bam</code> & <code>.bai</code> (Phased Reads)</li>
+                                <li><code>*combined.bw</code> (Total Methylation Signal)</li>
+                                <li><code>*hap1.bw</code> / <code>*hap2.bw</code> (Allele-Specific Tracks)</li>
+                            </ul>
+                        </div>
+                            <a href="results_260409_hiphase/multiqc/multiqc_report.html#genomic-medicine-sweden-nallo-methods-description"
+                               target="_blank" class="btn btn-outline-primary btn-sm">
+                               <i class="bi bi-file-text me-2"></i>View Methods and Run Details
+                            </a>
+                        </div>
+                    </div>
+                <div class="col-md-6">
+                    <div class="card p-4 h-100 shadow-sm border-0 bg-light">
+                        <div class="section-title">Real-Time Client Diagnostics</div>
+                        <div class="diag-grid">
+                            <div class="diag-card">
+                                <span class="diag-label">Available CPUs</span>
+                                <span class="diag-value" id="rt-cpu">--</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">UI Fluidity (FPS)</span>
+                                <span class="diag-value" id="rt-fps">--</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">JS Heap Usage</span>
+                                <span class="diag-value" id="rt-mem">--</span>
+                                <small class="text-muted d-block mt-1">Current RAM footprint</small>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">Embedded Data</span>
+                                <span class="diag-value" style="font-size: 1rem;" id="rt-size">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="d-flex justify-content-between align-items-center">
+        <div>Copyright &copy; 2026 <strong>Jyotirmoy Das</strong></div>
+        <div>Bioinformatics Core Facility and Clinical Genomics Link&ouml;ping</div>
+        <div>Report version number: v0.3.0</div>
+    </footer>
+
+    <script>
+        const sampleData = JSON.parse(`{{SAMPLE_DATA_JSON}}`);
+        const sampleStats = {{SAMPLE_STATS_JSON}};
+
+        let gridOptions, jbrowseView, statsChart, fileStore = {}, allRows = [];
+
+        function log(msg, type = 'info') {
+            const p = document.getElementById('debug-log');
+            if (p) {
+                p.innerHTML += `\n${new Date().toLocaleTimeString()} ${msg}`;
+                p.scrollTop = p.scrollHeight;
+            }
+        }
+
+        let frameTimes = [], lastFrame = performance.now();
+        function runRealTimeProbes() {
+            const now = performance.now();
+            const delta = now - lastFrame;
+            lastFrame = now;
+            frameTimes.push(1000 / delta);
+            if (frameTimes.length > 60) frameTimes.shift();
+            const avgFPS = Math.round(frameTimes.reduce((a, b) => a + b) / frameTimes.length);
+            document.getElementById('rt-fps').innerText = avgFPS;
+            if (window.performance && performance.memory) {
+                const used = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
+                document.getElementById('rt-mem').innerText = used + ' MB';
+            } else { document.getElementById('rt-mem').innerText = 'N/A'; }
+            requestAnimationFrame(runRealTimeProbes);
+        }
+
+        async function init() {
+            document.getElementById('rt-cpu').innerText = navigator.hardwareConcurrency || '--';
+            document.getElementById('rt-size').innerText = (JSON.stringify(sampleData).length / 1024).toFixed(1) + ' KB';
+            runRealTimeProbes();
+
+            try {
+                allRows = [];
+                const sampleLabels = Object.keys(sampleData);
+                const asmCountsBySample = sampleLabels.map(sid => {
+                    const count = sampleData[sid].filter(row => row.status_label === 'AlleleSpecificMethylation').length;
+                    return count;
+                });
+                const totalAsm = asmCountsBySample.reduce((a, b) => a + b, 0);
+
+                Object.keys(sampleData).forEach(sid => {
+                    sampleData[sid].forEach(row => {
+                        allRows.push({ ...row, sample: sid });
+                    });
+                });
+
+                checkDuplicates(allRows);
+
+                document.getElementById('stat-qc-pass').innerText = allRows.filter(r => r.qc_status === 0).length;
+
+                document.getElementById('asm-count-text').innerText = `${totalAsm} total ASM regions across all samples`;
+                document.getElementById('stat-cvg').innerText = 'Combined';
+                document.getElementById('stat-regions').innerText = allRows.length;
+
+                // Project-wide ASM Pie Chart (Sidebar)
+                const statsCtx = document.getElementById('statsChart').getContext('2d');
+                statsChart = new Chart(statsCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: sampleLabels,
+                        datasets: [{
+                            data: asmCountsBySample,
+                            backgroundColor: ['#2980b9', '#c0392b', '#27ae60', '#f39c12'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => ` ${ctx.label}: ${ctx.raw} ASM regions`
+                                }
+                            }
+                        } 
+                    }
+                });
+
+                gridOptions = {
+                    defaultColDef: { sortable: true, resizable: true, filter: true, editable: true, suppressMovable: false },
+                    isExternalFilterPresent: () => isDeduplicated,
+                    doesExternalFilterPass: (node) => {
+                        if (!isDeduplicated) return true;
+                        return node.data && node.data.is_unique === true;
+                    },
+                    columnDefs: [
+                        { field: 'sample', headerName: 'Sample', width: 95, pinned: 'left', filter: true, editable: false },
+                        { field: 'cpg_label', headerName: 'cpg_label', pinned: 'left', minWidth: 150 },
+                        { 
+                            field: 'status_label', 
+                            headerName: 'Summary Label', 
+                            hide: true,
+                            cellRenderer: p => {
+                                const val = p.value || 'Uncategorized';
+                                let cls = 'bg-inconclusive';
+                                if (val === 'AlleleSpecificMethylation') cls = 'bg-asm';
+                                else if (val === 'Methylated') cls = 'bg-methyl';
+                                else if (val === 'Unmethylated') cls = 'bg-unmeth';
+                                return `<span class="status-pill ${cls}">${val}</span>`;
+                            }, 
+                            width: 180 
+                        },
+                        { field: 'expected_category', headerName: 'Expected Category', width: 180 },
+                        {
+                            field: 'asm_threshold',
+                            headerName: 'ASM Range (35-65%)',
+                            width: 175,
+                            valueGetter: p => {
+                                const combined = parseFloat(p.data.mean_combined_methyl) || 0;
+                                if (combined >= 0.35 && combined <= 0.65) return 'In Range (35-65%)';
+                                return combined < 0.35 ? '<35% (Hypo)' : '>65% (Hyper)';
+                            },
+                            cellRenderer: p => {
+                                const combined = parseFloat(p.data.mean_combined_methyl) || 0;
+                                if (combined >= 0.35 && combined <= 0.65) {
+                                    return `<span class="badge bg-light text-secondary border shadow-none" style="font-size:0.75rem; font-weight:500; padding:4px 8px;" title="Within normative 35-65% ASM heuristic window"><i class="bi bi-check2 text-success me-1"></i>In Range (35-65%)</span>`;
+                                } else if (combined < 0.35) {
+                                    return `<span class="badge bg-primary text-white shadow-sm" style="font-size:0.75rem; font-weight:600; padding:4px 8px;" title="Methylation below 35% (<=34% Aberrant / Loss of Imprinting / Hypo)"><i class="bi bi-arrow-down-circle me-1"></i>&lt;35% (Hypo)</span>`;
+                                } else {
+                                    return `<span class="badge bg-danger text-white shadow-sm" style="font-size:0.75rem; font-weight:600; padding:4px 8px;" title="Methylation above 65% (>=66% Aberrant / Gain of Imprinting / Hyper)"><i class="bi bi-arrow-up-circle me-1"></i>&gt;65% (Hyper)</span>`;
+                                }
+                            }
+                        },
+                        {
+                            headerName: 'Methylation Vis', cellRenderer: p => {
+                                const combined = parseFloat(p.data.mean_combined_methyl) || 0;
+                                const remaining = Math.max(0, 1 - combined);
+                                const inRange = (combined >= 0.35 && combined <= 0.65);
+                                const wrapClass = inRange ? 'methyl-bar-wrap in-asm-range' : 'methyl-bar-wrap dimmed-non-asm';
+                                const rangeText = inRange ? 'In Range (35-65%)' : (combined < 0.35 ? 'Aberrant: <35% (Hypo)' : 'Aberrant: >65% (Hyper)');
+                                return `<div class="${wrapClass}" title="[${rangeText}] Methylated: ${(combined * 100).toFixed(1)}% | Unmethylated: ${(remaining * 100).toFixed(1)}%"><div class="bar-h1" style="width:${combined * 100}%"></div><div class="bar-h2" style="width:${remaining * 100}%"></div></div>`;
+                            }, width: 130, sortable: false, editable: false
+                        },
+                        { field: 'meth_score', headerName: 'meth score', cellRenderer: p => `<span class="fw-bold text-primary">${p.value}</span>`, width: 100 },
+                        { field: 'unmeth_score', headerName: 'unmeth score', cellRenderer: p => `<span class="fw-bold text-danger">${p.value}</span>`, width: 100 },
+                        { field: 'mean_meth_delta', headerName: 'Meth Delta', width: 100 },
+                        { 
+                            field: 'qc_warnings', 
+                            headerName: 'QC', 
+                            cellRenderer: p => {
+                                const status = p.data.qc_status;
+                                if (status === 0) {
+                                    return `<span class="text-success fw-semibold" style="font-size:0.75rem;"><i class="bi bi-check-circle me-1"></i>${p.value}</span>`;
+                                } else if (status === 1) {
+                                    return `<span class="fw-semibold" style="color: #d97706; font-size:0.75rem;" title="${p.value}"><i class="bi bi-exclamation-triangle me-1"></i>${p.value}</span>`;
+                                } else {
+                                    return `<span class="text-danger fw-semibold" style="font-size:0.75rem;" title="${p.value}"><i class="bi bi-x-circle me-1"></i>${p.value}</span>`;
+                                }
+                            }, 
+                            width: 180 
+                        },
+                        { field: 'chrom', headerName: 'Chr', width: 80 },
+                        {
+                            headerName: 'External Links',
+                            width: 130,
+                            editable: false,
+                            cellRenderer: p => {
+                                const start = p.data.start;
+                                const end = p.data.end || start;
+                                const chrom = p.data.chrom;
+                                const chromNum = chrom.replace('chr', '');
+                                
+                                const gnomadUrl = `https://gnomad.broadinstitute.org/region/${chrom}-${start}-${end}?dataset=gnomad_r4`;
+                                const ncbiUrl = `https://www.ncbi.nlm.nih.gov/genome/gdv/browser/genome/?id=GCF_000001405.40&chr=${chromNum}&from=${start}&to=${end}`;
+                                
+                                return `
+                                    <div class="d-flex gap-2">
+                                        <a href="${gnomadUrl}" target="_blank" class="badge bg-primary text-decoration-none" title="View in gnomAD">G</a>
+                                        <a href="${ncbiUrl}" target="_blank" class="badge bg-secondary text-decoration-none" title="View in NCBI GDV">N</a>
+                                    </div>
+                                `;
+                            }
+                        },
+                        { field: 'start', headerName: 'Pos', width: 110, filter: 'agNumberColumnFilter' },
+                        { field: 'end', headerName: 'End Pos', width: 110, filter: 'agNumberColumnFilter' },
+                        { field: 'interval', headerName: 'Interval', width: 100, filter: 'agNumberColumnFilter' },
+                        {
+                            headerName: 'Action',
+                            cellRenderer: p => `<button class="btn btn-sm btn-link text-danger p-0" onclick="deleteRow('${p.node.id}')"><i class="bi bi-trash"></i></button>`,
+                            width: 80,
+                            sortable: false,
+                            filter: false,
+                            editable: false
+                        }
+                    ],
+                    rowData: allRows, 
+                    rowSelection: 'single', 
+                    pagination: true,
+                    paginationPageSize: 25,
+                    onCellValueChanged: (params) => {
+                        log(`✏️ Cell updated: ${params.column.colId} -> ${params.newValue}`);
+                        // Update interval if start/end changed
+                        if (params.column.colId === 'start' || params.column.colId === 'end') {
+                            const start = parseInt(params.data.start) || 0;
+                            const end = parseInt(params.data.end) || 0;
+                            params.data.interval = (end - start).toString();
+                            gridOptions.api.applyTransaction({ update: [params.data] });
+                        } else if (params.column.colId === 'meth_score') {
+                            const val = parseFloat(params.newValue) || 0;
+                            params.data.mean_combined_methyl = String(val);
+                            params.data.unmeth_score = (Math.max(0, 1.0 - val)).toFixed(3);
+                            gridOptions.api.applyTransaction({ update: [params.data] });
+                        } else if (params.column.colId === 'mean_combined_methyl') {
+                            const val = parseFloat(params.newValue) || 0;
+                            params.data.meth_score = String(val);
+                            params.data.unmeth_score = (Math.max(0, 1.0 - val)).toFixed(3);
+                            gridOptions.api.applyTransaction({ update: [params.data] });
+                        }
+                        // Refresh stats, sample bar chart, GoS benchmark chart and reference table
+                        updateLocusStats(params.data);
+                    },
+                    onSelectionChanged: () => {
+                        const row = gridOptions.api.getSelectedRows()[0];
+                        if (row) {
+                            const locus = `${row.chrom}:${parseInt(row.start) - 1000}-${parseInt(row.end || row.start) + 1000}`;
+                            navigator.clipboard.writeText(locus).then(() => {
+                                log(`📋 Locus copied: ${row.cpg_label} (${locus})`);
+                            });
+                            updateLocusStats(row);
+                        }
+                    }
+                };
+                new agGrid.Grid(document.querySelector('#myGrid'), gridOptions);
+                
+                populateColumnToggle();
+
+                // Remove the old donut chart logic from init (we use the per-sample bar chart now)
+                if (allRows.length > 0) updateLocusStats(allRows[0]);
+
+            } catch (e) { log("🛑 Init Error: " + e.message); }
+        }
+
+        function getCurrentSampleRows(sid) {
+            if (gridOptions && gridOptions.api) {
+                const rows = [];
+                gridOptions.api.forEachNode(node => {
+                    if (node.data && (!sid || node.data.sample === sid)) {
+                        rows.push(node.data);
+                    }
+                });
+                return rows;
+            }
+            return (sampleData && sid && sampleData[sid]) ? sampleData[sid] : [];
+        }
+
+        function updateGlobalCounts() {
+            if (!sampleData) return;
+            const sampleLabels = Object.keys(sampleData);
+            const asmCountsBySample = sampleLabels.map(sid => {
+                const rows = getCurrentSampleRows(sid);
+                return rows.filter(r => r.status_label === 'AlleleSpecificMethylation').length;
+            });
+            const totalAsm = asmCountsBySample.reduce((a, b) => a + b, 0);
+            const el = document.getElementById('asm-count-text');
+            if (el) el.innerText = `${totalAsm} total ASM regions across all samples`;
+            if (statsChart && statsChart.data && statsChart.data.datasets && statsChart.data.datasets[0]) {
+                statsChart.data.datasets[0].data = asmCountsBySample;
+                statsChart.update();
+            }
+        }
+
+        let sampleBarChart;
+        function updateLocusStats(row) {
+            if (!row) return;
+            const sid = row.sample;
+            const data = getCurrentSampleRows(sid);
+            const stats = sampleStats[sid] || { cov: 'N/A', passCount: 0 };
+            
+            const counts = { ASM: 0, Methylated: 0, Unmethylated: 0, Uncat: 0 };
+            data.forEach(d => {
+                const s = d.status_label;
+                if (s === 'AlleleSpecificMethylation') counts.ASM++;
+                else if (s === 'Methylated') counts.Methylated++;
+                else if (s === 'Unmethylated') counts.Unmethylated++;
+                else counts.Uncat++;
+            });
+
+            const statCvg = document.getElementById('stat-cvg');
+            if (statCvg) statCvg.innerText = sid;
+            const statCvgDetail = document.getElementById('stat-cvg-detail');
+            if (statCvgDetail) statCvgDetail.innerText = `Global Coverage: ${stats.cov || 'N/A'}`;
+            const statRegions = document.getElementById('stat-regions');
+            if (statRegions) statRegions.innerText = counts.ASM;
+            const statQcPass = document.getElementById('stat-qc-pass');
+            if (statQcPass) statQcPass.innerText = stats.passCount || 0;
+
+            // Update Vertical Bar Chart
+            if (sampleBarChart) sampleBarChart.destroy();
+            const canvasEl = document.getElementById('sampleBarChart');
+            if (canvasEl) {
+                const ctx = canvasEl.getContext('2d');
+                sampleBarChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['ASM', 'Methyl.', 'Unmeth.', 'Other'],
+                        datasets: [{
+                            data: [counts.ASM, counts.Methylated, counts.Unmethylated, counts.Uncat],
+                            backgroundColor: ['#e74c3c', '#2ecc71', '#9b59b6', '#95a5a6'],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Vertical bars essentially
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            x: { display: false, grid: { display: false } },
+                            y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                        }
+                    }
+                });
+            }
+
+            // Update GoS Reference Cohort Interactive Benchmark
+            updateGoSBenchmark(sid, row);
+            updateGlobalCounts();
+        }
+
+        // -------------------------------------------------------------
+        // GoS / Cohort Reference Benchmark Data & Dynamic Loader
+        // -------------------------------------------------------------
+        const DEFAULT_GOS_REFERENCE_DATA = {
+            "chr6:144007487-144008719": { label: "TNDM", gos_cpg: "CpG:_111", median: 0.510, q1: 0.462, q3: 0.558, iqr: 0.097, ci_lo: 0.369, ci_hi: 0.651, n_controls: 288, concordance: "91.7%" },
+            "chr7:50782178-50783005": { label: "SRS", gos_cpg: "CpG:_120", median: 0.518, q1: 0.458, q3: 0.577, iqr: 0.119, ci_lo: 0.345, ci_hi: 0.690, n_controls: 288, concordance: "85.1%" },
+            "chr7:130490866-130493279": { label: "SRS", gos_cpg: "CpG:_184", median: 0.536, q1: 0.488, q3: 0.583, iqr: 0.095, ci_lo: 0.398, ci_hi: 0.673, n_controls: 288, concordance: "79.5%" },
+            "chr11:1997761-2003229": { label: "SRS/BWS", gos_cpg: "CpG:_27", median: 0.519, q1: 0.245, q3: 0.794, iqr: 0.549, ci_lo: 0.000, ci_hi: 1.000, n_controls: 143, concordance: "9.1%" },
+            "chr11:2698767-2700902": { label: "SRS/BWS", gos_cpg: "CpG:_159", median: 0.523, q1: 0.466, q3: 0.579, iqr: 0.113, ci_lo: 0.358, ci_hi: 0.687, n_controls: 288, concordance: "81.9%" },
+            "chr14:100809335-100811397": { label: "Temple_Syndrome", gos_cpg: "Panel Specific", median: null, q1: null, q3: null, iqr: null, ci_lo: null, ci_hi: null, n_controls: 0, concordance: "N/A" },
+            "chr14:100824187-100827641": { label: "Temple_Syndrome", gos_cpg: "CpG:_30", median: 0.532, q1: 0.457, q3: 0.607, iqr: 0.150, ci_lo: 0.314, ci_hi: 0.751, n_controls: 288, concordance: "86.1%" },
+            "chr14:100904568-100904952": { label: "Temple_Syndrome", gos_cpg: "Panel Specific", median: null, q1: null, q3: null, iqr: null, ci_lo: null, ci_hi: null, n_controls: 0, concordance: "N/A" },
+            "chr15:23647363-23648635": { label: "PWS/AS", gos_cpg: "Panel Specific", median: null, q1: null, q3: null, iqr: null, ci_lo: null, ci_hi: null, n_controls: 0, concordance: "N/A" },
+            "chr15:24954857-24956829": { label: "PWS/AS", gos_cpg: "CpG:_77", median: 0.538, q1: 0.487, q3: 0.589, iqr: 0.102, ci_lo: 0.389, ci_hi: 0.687, n_controls: 288, concordance: "89.2%" },
+            "chr19:56837125-56841599": { label: "MLID", gos_cpg: "CpG:_83", median: 0.535, q1: 0.477, q3: 0.593, iqr: 0.116, ci_lo: 0.366, ci_hi: 0.703, n_controls: 288, concordance: "91.0%" },
+            "chr20:58838984-58843557": { label: "PHP", gos_cpg: "CpG:_165", median: 0.520, q1: 0.467, q3: 0.573, iqr: 0.106, ci_lo: 0.366, ci_hi: 0.674, n_controls: 288, concordance: "79.5%" },
+            "chr20:58850594-58852978": { label: "PHP", gos_cpg: "CpG:_26", median: 0.526, q1: 0.472, q3: 0.581, iqr: 0.108, ci_lo: 0.369, ci_hi: 0.684, n_controls: 288, concordance: "77.1%" },
+            "chr20:58853961-58856408": { label: "PHP", gos_cpg: "CpG:_190", median: 0.522, q1: 0.465, q3: 0.579, iqr: 0.113, ci_lo: 0.357, ci_hi: 0.686, n_controls: 288, concordance: "83.3%" },
+            "chr20:58888390-58890146": { label: "PHP", gos_cpg: "CpG:_342", median: 0.210, q1: 0.181, q3: 0.238, iqr: 0.056, ci_lo: 0.128, ci_hi: 0.291, n_controls: 288, concordance: "N/A" },
+            "chrX:147911826-147912259": { label: "Fragile_X", gos_cpg: "CpG:_91", median: 0.222, q1: 0.061, q3: 0.383, iqr: 0.322, ci_lo: 0.000, ci_hi: 0.689, n_controls: 288, concordance: "N/A" }
+        };
+
+        // Active reference dictionary (defaults to built-in GoS data)
+        let activeGoSReferenceData = { ...DEFAULT_GOS_REFERENCE_DATA };
+
+        function findGoSRef(chrom, start, end, label) {
+            const s = parseInt(start) || 0;
+            const e = parseInt(end) || 0;
+            const key = `${chrom}:${s}-${e}`;
+            if (activeGoSReferenceData[key]) return activeGoSReferenceData[key];
+            for (const [k, v] of Object.entries(activeGoSReferenceData)) {
+                if (!v || v.median === null || v.median === undefined) continue;
+                const parts = k.split(':');
+                if (parts[0] !== chrom) continue;
+                const se = parts[1].split('-');
+                const gs = parseInt(se[0]);
+                const ge = parseInt(se[1]);
+                if (!(e <= gs || s >= ge)) {
+                    return v;
+                }
+            }
+            return {
+                label: label || 'Locus',
+                gos_cpg: 'Cohort Reference N/A',
+                median: null,
+                q1: null,
+                q3: null,
+                iqr: null,
+                ci_lo: null,
+                ci_hi: null,
+                n_controls: 0,
+                concordance: 'N/A'
+            };
+        }
+
+        // Handle custom cohort reference file upload (TSV / CSV / JSON)
+        function handleGoSReferenceUpload(evt) {
+            const file = evt.target.files && evt.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result.trim();
+                    let parsedData = {};
+
+                    if (file.name.endsWith('.json')) {
+                        const raw = JSON.parse(content);
+                        // If user uploaded an object with locus keys or an array
+                        if (Array.isArray(raw)) {
+                            raw.forEach(item => {
+                                const k = item.locus || `${item.chrom}:${item.start}-${item.end}`;
+                                if (k) parsedData[k] = item;
+                            });
+                        } else {
+                            parsedData = raw;
+                        }
+                    } else {
+                        // Parse TSV or CSV
+                        const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0 && !l.startsWith('#'));
+                        if (lines.length < 2) {
+                            alert('Uploaded file contains no data rows.');
+                            return;
+                        }
+
+                        // Detect delimiter (tab or comma)
+                        const delim = lines[0].includes('\t') ? '\t' : ',';
+                        const headers = lines[0].split(delim).map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+
+                        // Find column indexes
+                        const colIdx = nameArr => {
+                            for (let n of nameArr) {
+                                const i = headers.indexOf(n.toLowerCase());
+                                if (i !== -1) return i;
+                            }
+                            return -1;
+                        };
+
+                        const iLocus = colIdx(['locus', 'interval', 'genomic_interval', 'coord']);
+                        const iChrom = colIdx(['chrom', 'chr', 'chromosome']);
+                        const iStart = colIdx(['start', 'pos', 'start_pos', 'from']);
+                        const iEnd = colIdx(['end', 'end_pos', 'to']);
+                        const iLabel = colIdx(['label', 'cpg_label', 'syndrome', 'disease', 'gene']);
+                        const iCpG = colIdx(['gos_cpg', 'cpg', 'control_locus', 'ref_locus']);
+                        const iMedian = colIdx(['median', 'gos_median', 'mean']);
+                        const iQ1 = colIdx(['q1', '25th', 'p25']);
+                        const iQ3 = colIdx(['q3', '75th', 'p75']);
+                        const iIQR = colIdx(['iqr']);
+                        const iCiLo = colIdx(['ci_lo', 'ci_lower', 'lo', 'min_norm', 'ci95_lo']);
+                        const iCiHi = colIdx(['ci_hi', 'ci_upper', 'hi', 'max_norm', 'ci95_hi']);
+                        const iN = colIdx(['n_controls', 'n', 'controls', 'count']);
+                        const iConcordance = colIdx(['concordance', 'healthy_cohort_concordance']);
+
+                        for (let r = 1; r < lines.length; r++) {
+                            const cells = lines[r].split(delim).map(c => c.trim().replace(/^["']|["']$/g, ''));
+                            if (cells.length < 2) continue;
+
+                            let key = '';
+                            if (iLocus !== -1 && cells[iLocus]) {
+                                key = cells[iLocus];
+                            } else if (iChrom !== -1 && iStart !== -1 && iEnd !== -1) {
+                                key = `${cells[iChrom]}:${cells[iStart]}-${cells[iEnd]}`;
+                            } else {
+                                continue;
+                            }
+
+                            const parseNum = (idx) => (idx !== -1 && cells[idx] !== '' && !isNaN(cells[idx])) ? parseFloat(cells[idx]) : null;
+                            const medianVal = parseNum(iMedian);
+                            const q1Val = parseNum(iQ1);
+                            const q3Val = parseNum(iQ3);
+                            let iqrVal = parseNum(iIQR);
+                            if (iqrVal === null && q1Val !== null && q3Val !== null) {
+                                iqrVal = Math.max(0, q3Val - q1Val);
+                            }
+
+                            parsedData[key] = {
+                                label: (iLabel !== -1 && cells[iLabel]) ? cells[iLabel] : 'Custom_Locus',
+                                gos_cpg: (iCpG !== -1 && cells[iCpG]) ? cells[iCpG] : key,
+                                median: medianVal,
+                                q1: q1Val,
+                                q3: q3Val,
+                                iqr: iqrVal,
+                                ci_lo: parseNum(iCiLo),
+                                ci_hi: parseNum(iCiHi),
+                                n_controls: (iN !== -1 && !isNaN(cells[iN])) ? parseInt(cells[iN]) : 0,
+                                concordance: (iConcordance !== -1 && cells[iConcordance]) ? cells[iConcordance] : 'N/A'
+                            };
+                        }
+                    }
+
+                    const locusCount = Object.keys(parsedData).length;
+                    if (locusCount === 0) {
+                        alert('Could not parse any reference loci from the selected file. Please verify file format.');
+                        return;
+                    }
+
+                    // Apply parsed data
+                    activeGoSReferenceData = parsedData;
+
+                    // Update UI badge & show reset button
+                    const badge = document.getElementById('gos-ref-status-badge');
+                    if (badge) {
+                        badge.className = 'badge bg-success-subtle text-success border shadow-none';
+                        badge.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>Custom Reference: ${file.name} (${locusCount} loci)`;
+                    }
+                    const resetBtn = document.getElementById('btn-gos-ref-reset');
+                    if (resetBtn) resetBtn.style.display = 'inline-block';
+
+                    // Refresh chart & table
+                    if (currentGoSSid) {
+                        updateGoSBenchmark(currentGoSSid, currentGoSActiveRow);
+                    }
+
+                    log(`Loaded custom reference data from ${file.name} (${locusCount} loci)`, 'info');
+                } catch (err) {
+                    console.error('Failed to parse reference file:', err);
+                    alert('Error parsing reference file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            evt.target.value = ''; // Reset input to allow re-uploading same file if edited
+        }
+
+        // Reset to built-in GoS 288-control dataset
+        function resetGoSReferenceData() {
+            activeGoSReferenceData = { ...DEFAULT_GOS_REFERENCE_DATA };
+
+            const badge = document.getElementById('gos-ref-status-badge');
+            if (badge) {
+                badge.className = 'badge bg-primary-subtle text-primary border shadow-none';
+                badge.innerHTML = `<i class="bi bi-shield-check me-1"></i>Reference: Built-in GoS (288 Controls)`;
+            }
+            const resetBtn = document.getElementById('btn-gos-ref-reset');
+            if (resetBtn) resetBtn.style.display = 'none';
+
+            if (currentGoSSid) {
+                updateGoSBenchmark(currentGoSSid, currentGoSActiveRow);
+            }
+            log('Reset benchmark reference data back to built-in GoS (288 controls)', 'info');
+        }
+
+        // Export/Download reference data as a TSV template
+        function downloadGoSReferenceTemplate() {
+            const headers = ['chrom', 'start', 'end', 'label', 'gos_cpg', 'median', 'q1', 'q3', 'iqr', 'ci_lo', 'ci_hi', 'n_controls', 'concordance'];
+            const lines = [headers.join('\t')];
+
+            Object.entries(activeGoSReferenceData).forEach(([key, d]) => {
+                const parts = key.split(':');
+                const chrom = parts[0] || '';
+                const se = (parts[1] || '').split('-');
+                const start = se[0] || '';
+                const end = se[1] || '';
+
+                lines.push([
+                    chrom,
+                    start,
+                    end,
+                    d.label || '',
+                    d.gos_cpg || '',
+                    d.median !== null && d.median !== undefined ? d.median : '',
+                    d.q1 !== null && d.q1 !== undefined ? d.q1 : '',
+                    d.q3 !== null && d.q3 !== undefined ? d.q3 : '',
+                    d.iqr !== null && d.iqr !== undefined ? d.iqr : '',
+                    d.ci_lo !== null && d.ci_lo !== undefined ? d.ci_lo : '',
+                    d.ci_hi !== null && d.ci_hi !== undefined ? d.ci_hi : '',
+                    d.n_controls !== undefined ? d.n_controls : '',
+                    d.concordance || ''
+                ].join('\t'));
+            });
+
+            const blob = new Blob([lines.join('\n')], { type: 'text/tab-separated-values;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'methylation_reference_benchmark_template.tsv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        const gosShadingPlugin = {
+            id: 'gosShadingPlugin',
+            beforeDraw(chart) {
+                const { ctx, chartArea, scales: { x } } = chart;
+                if (!chartArea || !x) return;
+                const { top, bottom, height } = chartArea;
+                
+                const left35 = x.getPixelForValue(0.35);
+                const right65 = x.getPixelForValue(0.65);
+                const mid50 = x.getPixelForValue(0.50);
+
+                ctx.save();
+                // 1. Shaded Normative Window [0.35, 0.65]
+                ctx.fillStyle = 'rgba(46, 125, 50, 0.08)';
+                ctx.fillRect(left35, top, right65 - left35, height);
+
+                // 2. Dashed Line at 0.35 (Hypo threshold)
+                ctx.strokeStyle = '#1976d2';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 3]);
+                ctx.beginPath();
+                ctx.moveTo(left35, top);
+                ctx.lineTo(left35, bottom);
+                ctx.stroke();
+
+                // 3. Dashed Line at 0.65 (Hyper threshold)
+                ctx.strokeStyle = '#dc3545';
+                ctx.beginPath();
+                ctx.moveTo(right65, top);
+                ctx.lineTo(right65, bottom);
+                ctx.stroke();
+
+                // 4. Dotted Line at 0.50 (Midpoint)
+                ctx.strokeStyle = '#888888';
+                ctx.lineWidth = 1.0;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(mid50, top);
+                ctx.lineTo(mid50, bottom);
+                ctx.stroke();
+
+                // 5. Zone Labels at Top Margin
+                ctx.setLineDash([]);
+                ctx.font = 'bold 9px system-ui, -apple-system, sans-serif';
+                ctx.fillStyle = '#1976d2';
+                ctx.textAlign = 'right';
+                ctx.fillText('← Hypo (≤34%)', left35 - 5, top - 6);
+
+                ctx.fillStyle = '#2e7d32';
+                ctx.textAlign = 'center';
+                ctx.fillText('Normative ASM (35%–65%)', mid50, top - 6);
+
+                ctx.fillStyle = '#dc3545';
+                ctx.textAlign = 'left';
+                ctx.fillText('Hyper (≥66%) →', right65 + 5, top - 6);
+
+                ctx.restore();
+            }
+        };
+
+        let gosReferenceChart = null;
+        let currentGoSFilter = 'all';
+        let currentGoSSid = null;
+        let currentGoSActiveRow = null;
+        let currentGoSChartData = [];
+
+        function filterGoSChart(mode) {
+            currentGoSFilter = mode;
+            const btnAll = document.getElementById('btn-gos-filter-all');
+            const btnSelected = document.getElementById('btn-gos-filter-aberrant');
+            if (btnAll) btnAll.classList.toggle('active', mode === 'all');
+            if (btnSelected) btnSelected.classList.toggle('active', mode === 'selected');
+            if (currentGoSSid) {
+                updateGoSBenchmark(currentGoSSid, currentGoSActiveRow);
+            }
+        }
+
+        function exportGoSChart() {
+            if (!gosReferenceChart) return;
+            const a = document.createElement('a');
+            a.href = gosReferenceChart.toBase64Image();
+            a.download = `GoS_Reference_Benchmark_${currentGoSSid || 'sample'}.png`;
+            a.click();
+        }
+
+        function updateGoSBenchmark(sid, activeRow) {
+            currentGoSSid = sid;
+            currentGoSActiveRow = activeRow;
+
+            const rows = getCurrentSampleRows(sid);
+            const canvas = document.getElementById('gosReferenceChart');
+            const tbody = document.getElementById('gos-stats-table-body');
+
+            if (!rows || rows.length === 0) {
+                if (gosReferenceChart) {
+                    gosReferenceChart.destroy();
+                    gosReferenceChart = null;
+                }
+                if (canvas && canvas.parentElement) {
+                    canvas.parentElement.style.height = '120px';
+                }
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>No loci available in table</td></tr>';
+                }
+                return;
+            }
+
+            // Prepare chart data items
+            const items = [];
+            rows.forEach((r, idx) => {
+                const combined = parseFloat(r.mean_combined_methyl) || 0;
+                const isAberrant = (combined < 0.35 || combined > 0.65);
+                const isSelected = activeRow && (r.chrom === activeRow.chrom && String(r.start) === String(activeRow.start));
+                if (currentGoSFilter === 'selected' && !isSelected) return;
+
+                const startNum = parseInt(r.start) || 0;
+                const endNum = parseInt(r.end) || 0;
+                const ref = findGoSRef(r.chrom, startNum, endNum, r.cpg_label);
+
+                const isSelectedMark = activeRow && (r.chrom === activeRow.chrom && String(r.start) === String(activeRow.start));
+                const displayLabel = `${r.cpg_label} (${r.chrom}:${Math.round(startNum / 1000)}k)`;
+
+                items.push({
+                    origIndex: idx,
+                    row: r,
+                    chrom: r.chrom,
+                    start: startNum,
+                    end: endNum,
+                    cpg_label: r.cpg_label,
+                    displayLabel: displayLabel,
+                    sampleScore: combined,
+                    isAberrant: isAberrant,
+                    isSelected: isSelectedMark,
+                    median: ref.median,
+                    q1: ref.q1,
+                    q3: ref.q3,
+                    iqr: ref.iqr,
+                    ci_lo: ref.ci_lo,
+                    ci_hi: ref.ci_hi,
+                    gos_cpg: ref.gos_cpg,
+                    n_controls: ref.n_controls,
+                    concordance: ref.concordance
+                });
+            });
+
+            currentGoSChartData = items;
+
+            if (items.length === 0) {
+                if (gosReferenceChart) {
+                    gosReferenceChart.destroy();
+                    gosReferenceChart = null;
+                }
+                if (canvas && canvas.parentElement) {
+                    canvas.parentElement.style.height = '120px';
+                }
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-info-circle me-2"></i>No locus selected. Click a row in the Methylation Status table above.</td></tr>';
+                }
+                return;
+            }
+
+            // Build chart datasets
+            const labels = items.map(d => d.displayLabel);
+            const whiskerData = items.map(d => d.ci_lo !== null ? [d.ci_lo, d.ci_hi] : [null, null]);
+            const iqrData = items.map(d => d.q1 !== null ? [d.q1, d.q3] : [null, null]);
+            const medianData = items.map(d => ({ x: d.median, y: d.displayLabel }));
+            const sampleDataPoints = items.map(d => ({ x: d.sampleScore, y: d.displayLabel }));
+
+            // ── Clinical color palette ────────────────────────────────────────
+            // Patient dot  : #FFCC00  Safety Gold
+            // GoS Median   : #003366  Deep Navy
+            // IQR bar      : #4A90E2  Clinical Blue
+            // 95% Range    : #D1E8FF  Ice Blue
+            // Selected items stay vivid; non-selected fade gracefully.
+            const hasSelection = activeRow !== null && activeRow !== undefined;
+
+            // Patient sample dot: Safety Gold when selected, muted gold otherwise
+            const sampleColors = items.map(d => {
+                if (d.isSelected) return '#FFCC00';                     // Safety Gold – vivid
+                if (hasSelection)  return 'rgba(255, 204, 0, 0.22)';    // dimmed gold
+                return 'rgba(255, 204, 0, 0.75)';                       // medium gold (no selection)
+            });
+
+            // Dark navy ring around the selected dot, invisible elsewhere
+            const sampleBorderColors = items.map(d => {
+                if (d.isSelected) return '#003366';                     // Deep Navy ring
+                return 'rgba(0,0,0,0.0)';
+            });
+            const sampleBorderWidths = items.map(d => d.isSelected ? 3 : 0);
+            const sampleRadii = items.map(d => d.isSelected ? 11 : (hasSelection ? 5.5 : 7));
+
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (gosReferenceChart) {
+                gosReferenceChart.destroy();
+            }
+
+            // Adjust canvas container height dynamically based on item count
+            const dynamicHeight = Math.max(380, items.length * 28 + 90);
+            canvas.parentElement.style.height = `${dynamicHeight}px`;
+
+            gosReferenceChart = new Chart(ctx, {
+                type: 'bar',
+                plugins: [
+                    gosShadingPlugin,
+                    {
+                        id: 'legendSpacing',
+                        beforeInit(chart) {
+                            const fitValue = chart.legend.fit;
+                            chart.legend.fit = function fit() {
+                                fitValue.bind(chart.legend)();
+                                this.height += 25; // Adjust this pixel value for desired gap
+                            };
+                        }
+                    }
+                ],
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            // 95% Population Range – Ice Blue (#D1E8FF)
+                            type: 'bar',
+                            label: 'GoS 95% Population Range',
+                            data: whiskerData,
+                            indexAxis: 'y',
+                            backgroundColor: items.map(d => d.isSelected ? 'rgba(209,232,255,0.85)' : (hasSelection ? 'rgba(209,232,255,0.28)' : 'rgba(209,232,255,0.70)')),
+                            borderColor:     items.map(d => d.isSelected ? '#4A90E2'              : (hasSelection ? 'rgba(74,144,226,0.30)'  : 'rgba(74,144,226,0.55)')),
+                            borderWidth: 1,
+                            barThickness: 4,
+                            borderRadius: 1,
+                            order: 4
+                        },
+                        {
+                            // IQR (Q1–Q3) – Clinical Blue (#4A90E2)
+                            type: 'bar',
+                            label: 'GoS Control IQR (Q1–Q3)',
+                            data: iqrData,
+                            indexAxis: 'y',
+                            backgroundColor: items.map(d => d.isSelected ? 'rgba(74,144,226,0.90)' : (hasSelection ? 'rgba(74,144,226,0.18)' : 'rgba(74,144,226,0.60)')),
+                            borderColor:     items.map(d => d.isSelected ? '#2a6db5'              : (hasSelection ? 'rgba(74,144,226,0.28)'  : 'rgba(74,144,226,0.80)')),
+                            borderWidth: 1,
+                            barThickness: 12,
+                            borderRadius: 2,
+                            order: 3
+                        },
+                        {
+                            // Median – Deep Navy (#003366)
+                            type: 'scatter',
+                            label: 'GoS Control Median',
+                            data: medianData,
+                            backgroundColor: items.map(d => d.isSelected ? '#003366' : (hasSelection ? 'rgba(0,51,102,0.25)' : 'rgba(0,51,102,0.70)')),
+                            borderColor:     items.map(d => d.isSelected ? '#ffffff' : 'rgba(255,255,255,0.0)'),
+                            borderWidth: 2,
+                            pointRadius: items.map(d => d.isSelected ? 8 : (hasSelection ? 4 : 5.5)),
+                            pointStyle: 'rectRot',
+                            pointHoverRadius: 10,
+                            order: 2
+                        },
+                        {
+                            type: 'scatter',
+                            label: `Patient ${sid}`,
+                            data: sampleDataPoints,
+                            backgroundColor: sampleColors,
+                            borderColor: sampleBorderColors,
+                            borderWidth: sampleBorderWidths,
+                            pointRadius: sampleRadii,
+                            pointHoverRadius: 11,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 8, right: 20, bottom: 5, left: 10 }
+                    },
+                    scales: {
+                        x: {
+                            min: 0.0,
+                            max: 1.0,
+                            title: {
+                                display: true,
+                                text: 'Bulk Methylation Score (Fraction: 0.0 – 1.0)',
+                                font: { weight: 'bold', size: 11 }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                            ticks: {
+                                callback: val => `${(val * 100).toFixed(0)}%`,
+                                font: { size: 10 }
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: { size: 13, weight: '600' },
+                                color: ctx => {
+                                    const idx = ctx.index;
+                                    if (!currentGoSChartData || !currentGoSChartData[idx]) return '#343a40';
+                                    return currentGoSChartData[idx].isSelected ? '#1a1a2e' : (activeRow ? 'rgba(52,58,64,0.45)' : '#343a40');
+                                }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.04)' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                boxWidth: 13,
+                                usePointStyle: true,
+                                font: { size: 10, weight: '500' },
+                                padding: 16
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(33, 37, 41, 0.95)',
+                            padding: 12,
+                            titleFont: { size: 12, weight: 'bold' },
+                            bodyFont: { size: 11 },
+                            borderColor: '#495057',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    if (!tooltipItems.length) return '';
+                                    const idx = tooltipItems[0].dataIndex;
+                                    const d = currentGoSChartData[idx];
+                                    return `${d.cpg_label} (${d.chrom}:${d.start}-${d.end})`;
+                                },
+                                label: function(item) {
+                                    const idx = item.dataIndex;
+                                    const d = currentGoSChartData[idx];
+                                    const dsLabel = item.dataset.label;
+                                    if (dsLabel.startsWith('Patient')) {
+                                        const statusStr = d.sampleScore < 0.35 
+                                            ? 'Aberrant Hypo (<35%)' 
+                                            : (d.sampleScore > 0.65 ? 'Aberrant Hyper (>65%)' : 'In Range (35-65%)');
+                                        return [
+                                            `Sample Score: ${(d.sampleScore * 100).toFixed(1)}% (${d.sampleScore.toFixed(3)})`,
+                                            `Classification: ${statusStr}`
+                                        ];
+                                    } else if (dsLabel.includes('Median')) {
+                                        if (d.median === null) return 'GoS Median: Not in 19-region background panel';
+                                        return `GoS 288 Control Median: ${(d.median * 100).toFixed(1)}% (${d.median.toFixed(3)})`;
+                                    } else if (dsLabel.includes('IQR')) {
+                                        if (d.q1 === null) return 'GoS IQR: N/A';
+                                        return `GoS IQR (25%–75%): ${(d.q1 * 100).toFixed(1)}% – ${(d.q3 * 100).toFixed(1)}% (IQR: ${d.iqr.toFixed(3)})`;
+                                    } else if (dsLabel.includes('95%')) {
+                                        if (d.ci_lo === null) return 'GoS 95% Range: N/A';
+                                        return `GoS 95% Population Range: ${(d.ci_lo * 100).toFixed(1)}% – ${(d.ci_hi * 100).toFixed(1)}%`;
+                                    }
+                                    return `${dsLabel}: ${item.formattedValue}`;
+                                },
+                                afterBody: function(tooltipItems) {
+                                    if (!tooltipItems.length) return [];
+                                    const idx = tooltipItems[0].dataIndex;
+                                    const d = currentGoSChartData[idx];
+                                    if (d.concordance && d.concordance !== 'N/A') {
+                                        return [
+                                            `GoS Reference Locus: ${d.gos_cpg} (N=${d.n_controls})`,
+                                            `Healthy Cohort Concordance: ${d.concordance}`
+                                        ];
+                                    }
+                                    return [];
+                                }
+                            }
+                        }
+                    },
+                    onClick: (evt, elements) => {
+                        if (elements && elements.length > 0) {
+                            const idx = elements[0].index;
+                            const target = currentGoSChartData[idx];
+                            if (target && gridOptions && gridOptions.api) {
+                                gridOptions.api.forEachNode(node => {
+                                    if (node.data.chrom === target.chrom && String(node.data.start) === String(target.start)) {
+                                        node.setSelected(true, true);
+                                        gridOptions.api.ensureNodeVisible(node, 'middle');
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Populate the collapsible GoS reference table
+            if (tbody) {
+                tbody.innerHTML = items.map(d => {
+                    const statusBadge = d.sampleScore < 0.35
+                        ? `<span class="badge bg-primary text-white"><i class="bi bi-arrow-down-circle me-1"></i>&lt;35% (Hypo)</span>`
+                        : (d.sampleScore > 0.65
+                            ? `<span class="badge bg-danger text-white"><i class="bi bi-arrow-up-circle me-1"></i>&gt;65% (Hyper)</span>`
+                            : `<span class="badge bg-light text-secondary border"><i class="bi bi-check2 text-success me-1"></i>In Range (35-65%)</span>`);
+
+                    const rowClass = d.isSelected ? 'table-warning fw-bold' : '';
+                    return `
+                        <tr class="${rowClass}" style="cursor: pointer;" onclick="selectTableRowByCoord('${d.chrom}', '${d.start}')">
+                            <td><strong>${d.cpg_label}</strong></td>
+                            <td><code>${d.chrom}:${d.start}-${d.end}</code></td>
+                            <td><span class="badge bg-light text-dark border">${d.gos_cpg}</span></td>
+                            <td>${d.n_controls || 'N/A'}</td>
+                            <td>${d.median !== null ? d.median.toFixed(3) : '<span class="text-muted">N/A</span>'}</td>
+                            <td>${d.q1 !== null ? `${d.q1.toFixed(3)} – ${d.q3.toFixed(3)} (${d.iqr.toFixed(3)})` : '<span class="text-muted">N/A</span>'}</td>
+                            <td>${d.ci_lo !== null ? `[${d.ci_lo.toFixed(2)}, ${d.ci_hi.toFixed(2)}]` : '<span class="text-muted">N/A</span>'}</td>
+                            <td><span class="fw-bold">${(d.sampleScore * 100).toFixed(1)}%</span></td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function selectTableRowByCoord(chrom, start) {
+            if (gridOptions && gridOptions.api) {
+                gridOptions.api.forEachNode(node => {
+                    if (node.data.chrom === chrom && String(node.data.start) === String(start)) {
+                        node.setSelected(true, true);
+                        gridOptions.api.ensureNodeVisible(node, 'middle');
+                    }
+                });
+            }
+        }
+
+        function onFilterChanged() { gridOptions.api.setQuickFilter(document.getElementById('quick-filter').value); }
+        function onPageSizeChanged(newSize) { gridOptions.api.paginationSetPageSize(Number(newSize)); }
+        function exportData() { gridOptions.api.exportDataAsCsv(); }
+
+        let isDeduplicated = false;
+        let totalDuplicatesCount = 0;
+        let totalUniqueCount = 0;
+
+        function checkDuplicates(rows) {
+            const seen = new Set();
+            totalDuplicatesCount = 0;
+            totalUniqueCount = 0;
+            rows.forEach(r => {
+                const key = `${r.chrom}_${r.start}_${r.end}_${r.cpg_label}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    r.is_unique = true;
+                    totalUniqueCount++;
+                } else {
+                    r.is_unique = false;
+                    totalDuplicatesCount++;
+                }
+            });
+            updateFiltersUI();
+        }
+
+        function updateFiltersUI() {
+            const filtersBtn = document.getElementById('filters-btn');
+            const uniqueBadge = document.getElementById('filter-unique-badge');
+            const uniqueCheckbox = document.getElementById('filter-unique-loci');
+            if (!filtersBtn || !uniqueBadge || !uniqueCheckbox) return;
+
+            uniqueCheckbox.checked = isDeduplicated;
+
+            if (totalDuplicatesCount > 0) {
+                uniqueBadge.className = 'badge bg-warning text-dark ms-1';
+                uniqueBadge.innerText = `-${totalDuplicatesCount} dups`;
+            } else {
+                uniqueBadge.className = 'badge bg-light text-muted border ms-1';
+                uniqueBadge.innerText = 'All unique';
+            }
+
+            if (isDeduplicated) {
+                filtersBtn.className = 'btn btn-sm btn-primary dropdown-toggle shadow-sm';
+                filtersBtn.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> Filters <span class="badge bg-white text-primary ms-1">1</span>`;
+            } else {
+                filtersBtn.className = 'btn btn-sm btn-outline-secondary dropdown-toggle';
+                filtersBtn.innerHTML = `<i class="bi bi-funnel me-1"></i> Filters`;
+            }
+        }
+
+        function toggleDeduplication(checked) {
+            if (typeof checked === 'boolean') {
+                isDeduplicated = checked;
+            } else {
+                isDeduplicated = !isDeduplicated;
+            }
+
+            if (gridOptions && gridOptions.api) {
+                gridOptions.api.onFilterChanged();
+                updateStats();
+            }
+            updateFiltersUI();
+
+            if (isDeduplicated) {
+                log(`🔍 Filter applied: Showing ${totalUniqueCount} unique loci (${totalDuplicatesCount} duplicate rows hidden).`);
+            } else {
+                log(`📋 Showing all ${allRows.length} loci entries.`);
+            }
+        }
+
+        function updateStats() {
+            const displayedRows = isDeduplicated ? allRows.filter(r => r.is_unique) : allRows;
+            const passCount = displayedRows.filter(r => r.qc_status === 0).length;
+            
+            const statRegions = document.getElementById('stat-regions');
+            if (statRegions) statRegions.innerText = displayedRows.length;
+            
+            const statQc = document.getElementById('stat-qc-pass');
+            if (statQc) statQc.innerText = passCount;
+        }
+
+        window.onerror = function(msg, url, line) {
+            log(`🛑 Browser Error: ${msg} (at ${line})`);
+            return false;
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar-col');
+            const main = document.getElementById('main-col');
+            const btnText = document.getElementById('sidebar-toggle-text');
+            
+            sidebar.classList.toggle('sidebar-hidden');
+            main.classList.toggle('main-full');
+            
+            if (sidebar.classList.contains('sidebar-hidden')) {
+                btnText.innerText = 'Show Sidebar';
+            } else {
+                btnText.innerText = 'Hide Sidebar';
+            }
+            // Notify Ag-Grid to resize
+            if (gridOptions && gridOptions.api) {
+                setTimeout(() => gridOptions.api.sizeColumnsToFit(), 200);
+            }
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('table-card-container');
+            const grid = document.getElementById('myGrid');
+            const btnText = document.getElementById('fs-btn-text');
+            
+            container.classList.toggle('table-container-fullscreen');
+            grid.classList.toggle('fullscreen-grid');
+            
+            if (container.classList.contains('table-container-fullscreen')) {
+                btnText.innerText = 'Exit Fullscreen';
+            } else {
+                btnText.innerText = 'Fullscreen';
+            }
+            
+            // Notify Ag-Grid to resize
+            if (gridOptions && gridOptions.api) {
+                setTimeout(() => gridOptions.api.sizeColumnsToFit(), 200);
+            }
+        }
+
+        function toggleIGV() {
+            const container = document.getElementById('igv-container-card');
+            const btn = document.getElementById('igv-toggle-btn');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                btn.innerHTML = '<i class="bi bi-eye-slash me-1"></i> Hide IGV';
+                log("🌐 IGV Viewer launched.");
+            } else {
+                container.style.display = 'none';
+                btn.innerHTML = '<i class="bi bi-eye me-1"></i> Launch IGV';
+                log("🌐 IGV Viewer hidden.");
+            }
+        }
+
+        function populateColumnToggle() {
+            const list = document.getElementById('column-toggle-list');
+            if (!list) return;
+            const cols = gridOptions.columnDefs;
+            list.innerHTML = '';
+            cols.forEach(col => {
+                if (!col.field) return;
+                const colState = gridOptions.columnApi ? gridOptions.columnApi.getColumn(col.field) : null;
+                const isVisible = colState ? colState.isVisible() : !col.hide;
+                const li = document.createElement('li');
+                li.className = 'px-2 py-1';
+                li.innerHTML = `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="${col.field}" id="col-${col.field}" ${isVisible ? 'checked' : ''} onchange="toggleColumn('${col.field}', this.checked)">
+                        <label class="form-check-label small" for="col-${col.field}">${col.headerName || col.field}</label>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function toggleColumn(field, visible) {
+            gridOptions.columnApi.setColumnVisible(field, visible);
+            // Re-size columns to fit if needed
+            setTimeout(() => gridOptions.api.sizeColumnsToFit(), 100);
+        }
+
+        function addRow() {
+            const sid = (currentGoSSid) || (Object.keys(sampleData)[0] || 'Unknown');
+            const newItem = {
+                sample: sid,
+                cpg_label: 'New Locus',
+                status_label: 'AlleleSpecificMethylation',
+                expected_category: 'AlleleSpecificMethylation',
+                meth_score: '0.50',
+                unmeth_score: '0.50',
+                mean_meth_delta: '0.0',
+                qc_warnings: 'MANUAL',
+                qc_status: 0,
+                chrom: 'chr1',
+                start: '0',
+                end: '0',
+                interval: '0',
+                mean_combined_methyl: '0.50',
+                mean_hap1_methyl: '0.50',
+                mean_hap2_methyl: '0.50'
+            };
+            gridOptions.api.applyTransaction({ add: [newItem], addIndex: 0 });
+            if (sampleData && sampleData[sid]) {
+                sampleData[sid].unshift(newItem);
+            }
+            log("➕ New row added to the top.");
+
+            // Focus and select the new row
+            gridOptions.api.forEachNode(node => {
+                if (node.data === newItem) {
+                    node.setSelected(true, true);
+                    gridOptions.api.ensureNodeVisible(node, 'top');
+                }
+            });
+            updateLocusStats(newItem);
+        }
+
+        function deleteRow(nodeId) {
+            const rowNode = gridOptions.api.getRowNode(nodeId);
+            if (!rowNode) return;
+            if (confirm('Are you sure you want to delete this row?')) {
+                const deletedData = rowNode.data;
+                const sid = deletedData.sample || (Object.keys(sampleData)[0] || 'Unknown');
+
+                // 1. Remove from Ag-Grid
+                gridOptions.api.applyTransaction({ remove: [deletedData] });
+                log(`🗑️ Row deleted: ${deletedData.cpg_label}`);
+
+                // 2. Synchronize sampleData cache
+                if (sampleData && sampleData[sid]) {
+                    sampleData[sid] = sampleData[sid].filter(r => 
+                        !(r.chrom === deletedData.chrom && String(r.start) === String(deletedData.start) && r.cpg_label === deletedData.cpg_label)
+                    );
+                }
+
+                // 3. Re-evaluate remaining rows for this sample
+                const remaining = getCurrentSampleRows(sid);
+                if (remaining.length > 0) {
+                    const currentSelected = gridOptions.api.getSelectedRows()[0];
+                    if (currentSelected && currentSelected !== deletedData) {
+                        updateLocusStats(currentSelected);
+                    } else {
+                        const nextRow = remaining[0];
+                        gridOptions.api.forEachNode(node => {
+                            if (node.data === nextRow) {
+                                node.setSelected(true, true);
+                            }
+                        });
+                        updateLocusStats(nextRow);
+                    }
+                } else {
+                    // All rows removed for this sample
+                    updateGoSBenchmark(sid, null);
+                    const statRegions = document.getElementById('stat-regions');
+                    if (statRegions) statRegions.innerText = '0';
+                    if (sampleBarChart) {
+                        sampleBarChart.data.datasets[0].data = [0, 0, 0, 0];
+                        sampleBarChart.update();
+                    }
+                    updateGlobalCounts();
+                }
+            }
+        }
+
+        async function syncTracks() {}
+        window.onload = init;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

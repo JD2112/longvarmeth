@@ -20,10 +20,11 @@ workflow BASECALL_DEMUX {
         .join(fast5_runs.map { tuple(it[0], it[2], it[3], it[4], it[5]) })
         .map { tuple(it[0], it[1], it[3], it[4], it[5]) }
 
-    def all_pod5_runs = pod5_runs.map { tuple(it[0], it[1], it[3], it[4], it[5]) }
+    def all_pod5_runs = pod5_runs.map { tuple(it[0], file(it[1], checkIfExists: false), it[3], it[4], it[5]) }
         .concat(converted_runs)
 
     DORADO_BASECALL(all_pod5_runs)
+
     
     def demux_inputs = DORADO_BASECALL.out.bam
         .join(samples_ch.map { tuple(it[0], it[3]) })

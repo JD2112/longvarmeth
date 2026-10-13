@@ -23,4 +23,10 @@ process SNIFFLES {
         sniffles: \$( sniffles --version )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_svs.vcf.gz
+    touch versions.yml
+    """
 }

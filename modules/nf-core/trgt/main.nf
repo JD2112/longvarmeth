@@ -39,10 +39,6 @@ process TRGT {
     touch ${sample_id}.trgt.vcf.gz
     touch ${sample_id}.trgt.vcf.gz.tbi
     touch ${sample_id}.spanning.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        trgt: 1.0.0
-    END_VERSIONS
+    touch versions.yml
     """
 }

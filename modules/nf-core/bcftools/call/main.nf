@@ -28,4 +28,11 @@ process BCFTOOLS_CALL {
         bcftools: \$( bcftools --version 2>&1 | head -n 1 | sed -e "s/bcftools //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_${region}.vcf.gz
+    touch ${sample_id}_${region}.vcf.gz.tbi
+    touch versions.yml
+    """
 }

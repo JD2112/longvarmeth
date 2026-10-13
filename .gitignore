@@ -5,6 +5,7 @@ work/
 results/
 results_*/
 *.html
+!assets/**/*.html
 *.txt
 
 

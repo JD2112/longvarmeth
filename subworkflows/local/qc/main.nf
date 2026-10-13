@@ -32,8 +32,9 @@ workflow READ_QC {
 
     emit:
     fastq          = fastq_ch
-    cramino_files  = CRAMINO.out.tsv
-    fastqc_files   = FASTQC.out.zip
-    nanoplot_files = NANOPLOT.out.txt
+    cramino_files  = CRAMINO.out.report
+    fastqc_files   = FASTQC.out.qc_files
+    nanoplot_files = NANOPLOT.out.report
     versions       = ch_versions
+
 }

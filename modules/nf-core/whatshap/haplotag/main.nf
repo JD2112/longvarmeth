@@ -32,4 +32,11 @@ process WHATSHAP_HAPLOTAG {
         whatshap: \$( whatshap --version )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.haplotagged.bam
+    touch ${sample_id}.haplotagged.bam.bai
+    touch versions.yml
+    """
 }

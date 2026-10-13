@@ -22,4 +22,10 @@ process DORADO_BASECALL {
         ${mod_bases_arg} \\
         > basecalled_reads.bam
     """
+
+    stub:
+    """
+    touch basecalled_reads.bam
+    touch versions.yml
+    """
 }

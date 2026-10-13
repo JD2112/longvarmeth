@@ -35,4 +35,11 @@ process MERGE_BAMS {
         samtools: \$( samtools --version 2>&1 | head -n 1 | sed -e "s/samtools //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_merged.bam
+    touch versions.yml
+    """
 }
+

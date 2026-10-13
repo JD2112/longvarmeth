@@ -25,4 +25,10 @@ process VEP_DOWNLOAD {
         vep: \$( vep --help 2>&1 | grep "ensembl-vep" | head -n 1 | sed -e "s/.*: //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch vep_db_ready.txt
+    touch versions.yml
+    """
 }

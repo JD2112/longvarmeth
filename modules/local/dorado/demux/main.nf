@@ -17,4 +17,12 @@ process DORADO_DEMUX {
         --output-dir demux \\
         --threads ${task.cpus ?: params.threads}
     """
+
+    stub:
+    """
+    mkdir -p demux/barcode01
+    touch demux/barcode01/reads.bam
+    touch versions.yml
+    """
 }
+

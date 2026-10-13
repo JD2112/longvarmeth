@@ -22,4 +22,10 @@ process CRAMINO {
         cramino: \$( cramino --version | sed -e "s/cramino //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_cramino.txt
+    touch versions.yml
+    """
 }

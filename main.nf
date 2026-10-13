@@ -2,7 +2,12 @@
 
 nextflow.enable.dsl=2
 
-def logo = """
+include { LONGVARMETH } from './workflows/longvarmeth'
+include { NANOPORE_PIPELINE } from './workflows/nanopore'
+include { PACBIO_PIPELINE } from './workflows/pacbio'
+
+workflow {
+    def logo = """
 ================================================================================
   _                                                    _   _     
  | | ___  _ __   __ _  __   ____ _ _ __ _ __ ___   ___| |_| |__  
@@ -16,15 +21,10 @@ def logo = """
   species : ${params.species} | mode : ${params.run_type}
 ================================================================================
 """
+    log.info logo
 
-log.info logo
-
-include { LONGVARMETH } from './workflows/longvarmeth'
-include { NANOPORE_PIPELINE } from './workflows/nanopore'
-include { PACBIO_PIPELINE } from './workflows/pacbio'
-
-workflow {
     Utils.validateParameters(params, log)
+
     Utils.printSummary(workflow, params, log)
 
     if (params.platform == 'pacbio') {
@@ -34,10 +34,12 @@ workflow {
     } else {
         LONGVARMETH()
     }
+
+    workflow.onComplete {
+        Utils.pipelineCompleted(it ?: workflow, params, log)
+    }
 }
 
-workflow.onComplete {
-    Utils.pipelineCompleted(workflow, params, log)
-}
+
 
 

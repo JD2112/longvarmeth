@@ -28,10 +28,6 @@ process PBMM2_ALIGN {
     """
     touch ${sample_id}.aligned.bam
     touch ${sample_id}.aligned.bam.bai
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        pbmm2: 1.13.0
-    END_VERSIONS
+    touch versions.yml
     """
 }
