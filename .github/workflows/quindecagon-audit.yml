@@ -152,7 +152,8 @@ jobs:
           passed_categories = sum([
               leaks_count == 0,
               summary["sbom"] == "generated",
-              summary["r_files"] > 0,
+              summary["black_clean"],
+              summary["flake8_issues"] == 0,
               summary.get("nfcore", {}).get("passed", 0) > 50
           ])
           badges["quindecagon"] = make_badge(

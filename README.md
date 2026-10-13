@@ -6,16 +6,13 @@
 [![secrets](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/secrets.json)](https://github.com/gitleaks/gitleaks)
 [![code style](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/black.json)](https://github.com/psf/black)
 [![flake8](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/flake8.json)](https://flake8.pycqa.org)
-[![R audit](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/r_audit.json)](https://github.com/r-lib/lintr)
 
 A modular, clinical-grade Nextflow DSL2 platform for single-molecule long-read genomics and epigenomics (**Oxford Nanopore & PacBio HiFi**). It features an explicit 12-stage analytical architecture with host GPU-accelerated basecalling/demux, pre- and post-alignment QC, *de novo* assembly & polishing, kinetic tag preservation (`MM`/`ML`), small and structural variant calling (SNV/InDel/SV/CNV/STR), haplotype co-phasing, strict clinical governance & PHI sanitization (inspired by `milou`), and interactive reporting.
 
-## Metro Architecture
+## Pipeline Architecture
 
 ![longvarmeth Metro Diagram](./docs/pipeline.png)
 
-
-## Analytical Architecture
 
 ### Platform-Specific Workflow Execution Matrix
 

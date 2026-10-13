@@ -10,12 +10,18 @@ Usage:
 
 Requires: pysam
 """
-import argparse, sys
+
+import argparse
+import sys
+
 try:
     import pysam
-except Exception as e:
-    sys.stderr.write("ERROR: pysam is required. Install with pip install pysam or conda install -c bioconda pysam\n")
+except Exception:
+    sys.stderr.write(
+        "ERROR: pysam is required. Install with pip install pysam or conda install -c bioconda pysam\n"
+    )
     raise
+
 
 def has_mod_tags(bam_path, max_reads=10000):
     try:
@@ -30,7 +36,7 @@ def has_mod_tags(bam_path, max_reads=10000):
     return False
 
 
-def build_tag_map(src_bam, tags_to_copy=("MM","ML","Mm")):
+def build_tag_map(src_bam, tags_to_copy=("MM", "ML", "Mm")):
     tagmap = {}
     count = 0
     with pysam.AlignmentFile(src_bam, "rb", check_sq=False) as sf:
@@ -45,14 +51,18 @@ def build_tag_map(src_bam, tags_to_copy=("MM","ML","Mm")):
             if tags:
                 tagmap[r.query_name] = tags
                 count += 1
-    sys.stderr.write(f"[INFO] Collected modification tags for {count} reads from {src_bam}\n")
+    sys.stderr.write(
+        f"[INFO] Collected modification tags for {count} reads from {src_bam}\n"
+    )
     return tagmap
+
 
 def transfer_tags(mapped_bam, tagmap, out_bam):
     n_total = 0
     n_added = 0
-    with pysam.AlignmentFile(mapped_bam, "rb") as mf, \
-         pysam.AlignmentFile(out_bam, "wb", template=mf) as of:
+    with pysam.AlignmentFile(mapped_bam, "rb") as mf, pysam.AlignmentFile(
+        out_bam, "wb", template=mf
+    ) as of:
         for r in mf:
             n_total += 1
             qname = r.query_name
@@ -62,24 +72,38 @@ def transfer_tags(mapped_bam, tagmap, out_bam):
                     r.set_tag(tname, tval, replace=True)
                 n_added += 1
             of.write(r)
-    sys.stderr.write(f"[INFO] Processed {n_total} alignments; added tags to {n_added} reads -> {out_bam}\n")
+    sys.stderr.write(
+        f"[INFO] Processed {n_total} alignments; added tags to {n_added} reads -> {out_bam}\n"
+    )
     return n_total, n_added
+
 
 def index_bam(bamfile):
     pysam.index(bamfile)
     sys.stderr.write(f"[INFO] Indexed {bamfile}\n")
 
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--source", required=True, help="Source demux BAM with mod tags (MM/ML)")
+    p.add_argument(
+        "--source", required=True, help="Source demux BAM with mod tags (MM/ML)"
+    )
     p.add_argument("--mapped", required=True, help="Mapped sorted BAM (no mod tags)")
-    p.add_argument("--out", required=True, help="Output BAM path (will be written, then indexed)")
-    p.add_argument("--tags", nargs="+", default=["MM","ML","Mm"], help="Tags to copy (default: MM ML Mm)")
+    p.add_argument(
+        "--out", required=True, help="Output BAM path (will be written, then indexed)"
+    )
+    p.add_argument(
+        "--tags",
+        nargs="+",
+        default=["MM", "ML", "Mm"],
+        help="Tags to copy (default: MM ML Mm)",
+    )
     args = p.parse_args()
 
     tagmap = build_tag_map(args.source, tags_to_copy=tuple(args.tags))
     transfer_tags(args.mapped, tagmap, args.out)
     index_bam(args.out)
+
 
 if __name__ == "__main__":
     main()
