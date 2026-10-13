@@ -31,4 +31,11 @@ process JBROWSE_CREATE {
         jbrowse: \$( jbrowse --version )
     END_VERSIONS
     """
+
+    stub:
+    """
+    mkdir -p ${sample_id}
+    touch versions.yml
+    """
 }
+

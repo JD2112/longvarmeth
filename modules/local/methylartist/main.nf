@@ -29,4 +29,11 @@ process METHYLARTIST_LOCUS {
         methylartist: \$( methylartist --version 2>&1 | sed -e "s/methylartist //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_locus_plot.png
+    touch versions.yml
+    """
 }
+

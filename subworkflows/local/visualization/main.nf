@@ -21,9 +21,17 @@ workflow VISUALIZATION {
         def methylartist_input = tagged_bams
             .join(assembly_ref)
             .map { sample_id, bam, bai, ref_files ->
-                tuple(sample_id, bam, bai, ref_files[0])
+                tuple(
+                    tuple(sample_id, bam, bai),
+                    ref_files[0],
+                    params.methylartist_locus
+                )
             }
-        METHYLARTIST_LOCUS(methylartist_input)
+        METHYLARTIST_LOCUS(
+            methylartist_input.map { bam_tuple, ref, locus -> bam_tuple },
+            methylartist_input.map { bam_tuple, ref, locus -> ref },
+            methylartist_input.map { bam_tuple, ref, locus -> locus }
+        )
         ch_versions = ch_versions.mix(METHYLARTIST_LOCUS.out.versions)
     }
 
@@ -32,11 +40,12 @@ workflow VISUALIZATION {
         .join(vcf_tbi)
         .join(assembly_ref)
         .map { sample_id, bam, bai, vcf, tbi, ref_files ->
-            tuple(sample_id, bam, bai, vcf, tbi, ref_files[0], ref_files[1])
+            tuple(sample_id, ref_files, bam, bai, vcf, tbi)
         }
 
     JBROWSE_CREATE(jbrowse_input)
     ch_versions = ch_versions.mix(JBROWSE_CREATE.out.versions)
+
 
     // 3. Clinical Methylation Dashboard (adapted from gms-nallo)
     if (params.enable_methylation_dashboard) {
