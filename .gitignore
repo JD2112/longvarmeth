@@ -36,6 +36,7 @@ Thumbs.db
 *.img
 .singularity/
 .apptainer/
+.venv/
 
 # Databases and heavy downloads
 db/

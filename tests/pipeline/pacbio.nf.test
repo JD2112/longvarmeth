@@ -1,0 +1,23 @@
+nextflow_pipeline {
+
+    name "Test Pipeline - PacBio HiFi Stub"
+    script "main.nf"
+
+    test("Should run PacBio HiFi pipeline in stub mode successfully") {
+
+        when {
+            params {
+                platform = "pacbio"
+                input    = "tests/csv/samplesheet_pacbio_test.csv"
+                outdir   = "results_test_pacbio_stub"
+                ref_nuc  = "https://raw.githubusercontent.com/nf-core/test-datasets/refs/heads/pacvar/reference/C9ORF72-12.fa"
+            }
+        }
+
+        then {
+            assert workflow.success
+        }
+
+    }
+
+}

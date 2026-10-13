@@ -15,34 +15,34 @@ A modular, clinical-grade Nextflow DSL2 platform for single-molecule long-read g
 ![longvarmeth Metro Diagram](./docs/pipeline.png)
 
 
-## 12-Stage Analytical Architecture
+## Analytical Architecture
 
 ### Platform-Specific Workflow Execution Matrix
 
-| Stage | Oxford Nanopore (`--platform ont`) | PacBio HiFi (`--platform pacbio`) | Inputs $\rightarrow$ Outputs |
+| Stage | Oxford Nanopore <br> (`--platform ont`) | PacBio HiFi <br> (`--platform pacbio`) | Inputs $\rightarrow$ Outputs |
 | :--- | :--- | :--- | :--- |
-| **1. Input Checksum** | Ingestion SHA-256 verification | Ingestion SHA-256 verification | Raw files $\rightarrow$ Audit manifest |
-| **2. Read QC** | `FastQC` + `Cramino` + `NanoPlot` | `Cramino` + `FastQC` + `NanoPlot` | BAMs / FASTQ $\rightarrow$ Yield & Q-scores |
-| **3. Basecalling** *(ONT raw)* | Host GPU `Dorado` basecalling & demux | *On-instrument demux (Revio / Sequel)* | `pod5`/`fast5` $\rightarrow$ Basecalled BAM |
-| **3. Assembly** *(de novo)* | `Flye --nano-hq` + `Medaka` polishing | `Hifiasm` diploid + `Racon` polishing | Reads $\rightarrow$ Polished FASTA + BUSCO |
-| **4. Alignment** | `minimap2 -ax map-ont` + tag restoration | `pbmm2 align --preset HIFI` (native) | Reads + Ref $\rightarrow$ Sorted BAM (`MM`/`ML`) |
-| **5. Small Variants** | `Clair3` (ONT model) / `DeepVariant` / `BCFtools` | `DeepVariant` (HiFi model) / `Clair3` | Sorted BAM $\rightarrow$ SNV/InDel VCF |
-| **6. SVs, CNVs & STRs** | `Sniffles2` (SVs) + `CNVkit` (CNVs) | `Sniffles2` + `HiFiCNV` (CNVs) + `TRGT` (STRs)| Sorted BAM $\rightarrow$ SV, CNV, and STR calls |
-| **7. Epigenomics** | `modkit pileup` (5mC/5hmC + 6mA motifs) | `pbcpgtools` + `methbat` + `modkit pileup` | Sorted BAM $\rightarrow$ BedMethyl & CpG scores |
-| **8. Phasing** | `WhatsHap phase` & `haplotag` (`HP:i:1/2`) | `HiPhase` (co-phases SNV + SV + STR) | VCFs + BAM $\rightarrow$ Phased VCF & BAM |
-| **9. Annotation** | `Ensembl VEP` + `SnpEff` + ClinVar | `Ensembl VEP` + `SnpEff` + ClinVar | Phased VCF $\rightarrow$ Annotated VCF |
-| **10. Governance** | PHI / hospital barcode sanitization & SHA-256 | PHI / hospital barcode sanitization & SHA-256 | Artifacts $\rightarrow$ Sanitized BAM + manifest |
-| **11. Visualization**| `JBrowse 2` tracks, `Methylartist` & **Interactive Methylation Dashboard** | `JBrowse 2` tracks, `Methylartist` & **Interactive Methylation Dashboard** | BAMs, VCFs $\rightarrow$ Web workspace & HTML reports |
-| **12. Reporting** | `MultiQC` + Executive Clinical Summary | `MultiQC` + Executive Clinical Summary | Metrics $\rightarrow$ MultiQC HTML report |
+| **Input Checksum** | Ingestion SHA-256 verification | Ingestion SHA-256 verification | Raw files $\rightarrow$<br>Audit manifest |
+| **Read QC** | `FastQC` + `NanoPlot`<br>`Cramino` + `samtools` | `Cramino` + `FastQC`<br>`NanoPlot` | Reads / BAM $\rightarrow$<br>Yield & Q-scores |
+| **Basecalling**<br>*(ONT raw)* | Host GPU `Dorado`<br>+ `pod5 convert` demux | *On-instrument demux*<br>(Revio / Sequel IIe) | `pod5` / `fast5` $\rightarrow$<br>Basecalled BAM |
+| **Assembly**<br>*(de novo)* | `Flye --nano-hq`<br>+ `Medaka` polishing | `Hifiasm` (diploid)<br>+ `Racon` polishing | Long reads $\rightarrow$<br>Assembly FASTA + BUSCO |
+| **Alignment** | `minimap2 -ax map-ont`<br>+ `MM`/`ML` tag restoration | `pbmm2 align --preset HIFI`<br>*(native kinetic preservation)* | Reads + Ref $\rightarrow$<br>Sorted BAM (`MM`/`ML`) |
+| **Small Variants** | `Clair3` (ONT model)<br>`DeepVariant` / `BCFtools` | `DeepVariant` (HiFi model)<br>`Clair3` / `BCFtools` | Sorted BAM $\rightarrow$<br>SNV / InDel VCF |
+| **SVs, CNVs & STRs** | `Sniffles2` (SVs)<br>`CNVkit` (CNVs) | `Sniffles2` (SVs) + `HiFiCNV`<br>`TRGT` (tandem repeats) | Sorted BAM $\rightarrow$<br>SV, CNV & STR calls |
+| **Epigenomics** | `modkit pileup`<br>(5mC / 5hmC / 6mA motifs) | `pbcpgtools` + `methbat`<br>+ `modkit pileup` | Sorted BAM $\rightarrow$<br>BedMethyl & CpG scores |
+| **Phasing** | `WhatsHap phase`<br>+ `haplotag` (`HP:i:1/2`) | `HiPhase`<br>*(co-phases SNV + SV + STR)* | VCFs + BAM $\rightarrow$<br>Phased VCF & Haplotagged BAM |
+| **Annotation** | `Ensembl VEP`<br>`SnpEff` + ClinVar | `Ensembl VEP`<br>`SnpEff` + ClinVar | Phased VCF $\rightarrow$<br>Annotated clinical VCF |
+| **Governance** | `SANITIZE_METADATA` (PHI scrub)<br>+ cryptographic SHA-256 manifest | `SANITIZE_METADATA` (PHI scrub)<br>+ cryptographic SHA-256 manifest | Artifacts $\rightarrow$<br>Sanitized BAM & manifest |
+| **Visualization** | `JBrowse 2` web workspace<br>`Methylartist` locus plots<br>Interactive Methylation Dashboard | `JBrowse 2` web workspace<br>`Methylartist` locus plots<br>Interactive Methylation Dashboard | BAMs, VCFs $\rightarrow$<br>Web workspace & HTML reports |
+| **Reporting** | `MultiQC` consolidated dashboard<br>+ Executive clinical summary | `MultiQC` consolidated dashboard<br>+ Executive clinical summary | Metrics $\rightarrow$<br>MultiQC HTML report |
 
 ### Multi-Organism Tailoring Matrix
 
 | Organism Profile | Target Scope | Ploidy | Specialized Calling & Assembly Behavior |
 | :--- | :--- | :---: | :--- |
-| **Human** (`-profile human`) | Clinical diagnostics, rare disease, germline/somatic WGS | Diploid (`2`) | Full variant matrix (`DeepVariant` + `Sniffles2` + `TRGT` + `HiPhase`), whole-genome 5mCG methylation & imprinting DMRs, clinical VEP/ClinVar annotation. |
-| **Eukaryote** (`-profile eukaryote`) | Non-model plants, animals, fungi, invertebrates | Diploid (`2`) | Reference-guided or *de novo* assembly with `Hifiasm`/`Flye`, lineage-specific gene completeness benchmark via `BUSCO`, and reference-free phased methylomics. |
-| **Prokaryote** (`-profile prokaryote`) | Bacteria, archaea, plasmids, microbial isolates | Haploid (`1`) | Single-contig circularized genome assembly via `Flye`/`Hifiasm`, circularity verification, and bacterial restriction-modification (R-M) motif detection (4mC, 6mA, 5mC). |
-| **Virus** (`-profile virus`) | Viral genomics, amplicons, quasispecies, phages | Haploid (`1`) | Amplicon-aware quality filtering, low-frequency intra-host diversity variant detection (relaxed 5% threshold), and metagenomic assembly (`--meta`). |
+| **Human**<br>(`-profile human`) | Clinical diagnostics, rare disease,<br>germline/somatic WGS | Diploid<br>(`2`) | • Full variant matrix (`DeepVariant` + `Sniffles2` + `TRGT` + `HiPhase`)<br>• Whole-genome 5mCG methylation & imprinting DMRs<br>• Clinical VEP/ClinVar consequence annotation & PHI scrubbing |
+| **Eukaryote**<br>(`-profile eukaryote`) | Non-model plants, animals,<br>fungi, invertebrates | Diploid<br>(`2`) | • Reference-guided or *de novo* assembly with `Hifiasm` / `Flye`<br>• Lineage-specific gene completeness benchmark via `BUSCO`<br>• Reference-free phased methylomics |
+| **Prokaryote**<br>(`-profile prokaryote`) | Bacteria, archaea, plasmids,<br>microbial isolates | Haploid<br>(`1`) | • Single-contig circularized assembly via `Flye` / `Hifiasm`<br>• Circularity verification & replication origin analysis<br>• Restriction-modification (R-M) motif detection (4mC, 6mA, 5mC) |
+| **Virus**<br>(`-profile virus`) | Viral genomics, amplicons,<br>quasispecies, phages | Haploid<br>(`1`) | • Amplicon-aware quality & length filtering<br>• Low-frequency intra-host diversity variant detection (relaxed 5% threshold)<br>• Metagenomic assembly mode (`--meta`) |
 
 ## Quickstart
 
@@ -94,7 +94,7 @@ You can configure execution parameters from the command line or via custom confi
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `--input` | string | `samplesheet.csv` | Path to CSV samplesheet (`run_id,input_path,input_type,kit,model,modified_bases_model`) |
+| `--input` | string | `samplesheet.csv` | Path to CSV samplesheet (`run_id,input_path,input_type,...`). Supports `pod5`, `fast5`, `ubam`, `pacbio_bam`, or pre-aligned `aligned_bam`. |
 | `--outdir` | string | `results` | Output directory destination |
 | `--platform` | string | `ont` | Long-read sequencing technology (`ont`, `pacbio`) |
 | `--species` | string | `eukaryote` | Target biology profile (`human`, `eukaryote`, `prokaryote`, `virus`) |
@@ -104,9 +104,12 @@ You can configure execution parameters from the command line or via custom confi
 | `--sv_caller` | string | `sniffles` | Structural variant caller (`sniffles`, `severus`, `pbsv`) |
 | `--phasing_tool` | string | `whatshap` | Haplotype phasing engine (`whatshap`, `hiphase`) |
 | `--cnv_caller` | string | `cnvkit` | Copy number variant caller (`cnvkit`, `hificnv`) |
+| `--skip_variants` | boolean | `false` | Skip all variant calling (SNVs, SVs, CNVs, STRs) to run a pure methylation pipeline |
+| `--skip_methylation` | boolean | `false` | Skip all epigenomics (Modkit / pb-cpg-tools) to run a pure variant pipeline |
+| `--skip_alignment` | boolean | `false` (auto for `aligned_bam`) | Bypass Minimap2/pbmm2 alignment when providing pre-aligned coordinate-sorted BAMs |
 | `--enable_trgt` | boolean | `false` | Enable tandem repeat genotyping via TRGT |
 | `--repeat_bed` | string | `""` | Path to TRGT repeat definition BED catalog |
-| `--enable_phi_sanitization`| boolean | `false` | Strip personal health information (PHI) & hospital run IDs from BAM/VCF headers |
+| `--enable_phi_sanitization`| boolean | `true` | Privacy-by-default: strip personal health information (PHI) & hospital run barcodes from BAM/VCF headers |
 | `--enable_audit_trail` | boolean | `true` | Generate cryptographic SHA-256 manifests and forensic provenance records |
 | `--enable_vep` | boolean | `false` | Enable Ensembl VEP functional variant annotation |
 | `--enable_snpeff` | boolean | `false` | Enable SnpEff variant annotation |

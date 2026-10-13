@@ -55,6 +55,7 @@ graph LR
         H[MultiQC Report]
         I1[Methylartist Locus Plots]
         I2[JBrowse 2 Interactive Tracks]
+        I3[Clinical Methylation Dashboard: IGV & AG-Grid]
     end
 
     %% Track Routing
@@ -93,4 +94,7 @@ graph LR
     F5 -->|viz| I2
     F6 -->|viz| I2
     G1 -->|viz| I2
+    G1 -->|viz| I3
+    G2 -->|viz| I3
+    F5 -->|viz| I3
     GOV2 -->|viz| H

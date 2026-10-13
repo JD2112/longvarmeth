@@ -1,0 +1,23 @@
+nextflow_pipeline {
+
+    name "Test Pipeline - Nanopore ONT Stub"
+    script "main.nf"
+
+    test("Should run Nanopore pipeline in stub mode successfully") {
+
+        when {
+            params {
+                platform = "ont"
+                input    = "tests/samplesheet_test.csv"
+                outdir   = "results_test_ont_stub"
+                ref_nuc  = "https://raw.githubusercontent.com/nf-core/test-datasets/refs/heads/pacvar/reference/C9ORF72-12.fa"
+            }
+        }
+
+        then {
+            assert workflow.success
+        }
+
+    }
+
+}

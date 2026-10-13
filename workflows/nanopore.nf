@@ -83,30 +83,58 @@ workflow NANOPORE_PIPELINE {
         def ref_nuc_path = file(params.ref_nuc)
         def ref_fai_path = file("${params.ref_nuc}.fai")
 
-        // Step 4: Minimap2 Alignment & Tag Restoration
-        ALIGNMENT(fastq_ch, all_demux_bams, ref_nuc_path)
-        ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
-        def aligned_bams = ALIGNMENT.out.aligned_bam_bai
+        // Step 4: Minimap2 Alignment & Tag Restoration (skip if input is pre-aligned)
+        def aligned_bams = Channel.empty()
+        def pre_aligned_runs = samples_ch.filter { it[2] == 'aligned_bam' }
+        def need_alignment_runs = samples_ch.filter { it[2] != 'aligned_bam' }
+
+        if (pre_aligned_runs) {
+            def pre_aligned_bams = pre_aligned_runs.map { run_id, input_path, input_type, kit, model, mod_model ->
+                def bam_file = file(input_path)
+                def bai_file = file("${input_path}.bai")
+                if (!bai_file.exists()) {
+                    bai_file = file(input_path.replaceAll(/\.bam$/, '.bai'))
+                }
+                tuple(run_id, bam_file, bai_file)
+            }
+            aligned_bams = aligned_bams.mix(pre_aligned_bams)
+        }
+
+        if (need_alignment_runs && !params.skip_alignment) {
+            ALIGNMENT(fastq_ch, all_demux_bams, ref_nuc_path)
+            ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
+            aligned_bams = aligned_bams.mix(ALIGNMENT.out.aligned_bam_bai)
+        }
 
         // Step 5: Small Variants
-        VARIANT_CALLING(aligned_bams, ref_nuc_path, ref_fai_path)
-        ch_versions = ch_versions.mix(VARIANT_CALLING.out.versions)
-        def small_vcfs = VARIANT_CALLING.out.vcf_tbi
-        ch_qc_files = ch_qc_files.concat(small_vcfs.map { it[1] })
+        def small_vcfs = Channel.empty()
+        if (!params.skip_variants) {
+            VARIANT_CALLING(aligned_bams, ref_nuc_path, ref_fai_path)
+            ch_versions = ch_versions.mix(VARIANT_CALLING.out.versions)
+            small_vcfs = VARIANT_CALLING.out.vcf_tbi
+            ch_qc_files = ch_qc_files.concat(small_vcfs.map { it[1] })
+        }
 
         // Step 6: Structural Variants & CNVs (Sniffles2 / CNVkit)
-        STRUCTURAL_VARIANTS(aligned_bams, ref_nuc_path)
-        ch_versions = ch_versions.mix(STRUCTURAL_VARIANTS.out.versions)
-        def sv_vcfs = STRUCTURAL_VARIANTS.out.sv_vcf
+        def sv_vcfs = Channel.empty()
+        if (!params.skip_variants) {
+            STRUCTURAL_VARIANTS(aligned_bams, ref_nuc_path)
+            ch_versions = ch_versions.mix(STRUCTURAL_VARIANTS.out.versions)
+            sv_vcfs = STRUCTURAL_VARIANTS.out.sv_vcf
+        }
 
         // Step 7: Methylation (Modkit pileup)
-        METHYLATION(aligned_bams, ref_nuc_path)
-        ch_versions = ch_versions.mix(METHYLATION.out.versions)
+        def bed_methylation = Channel.empty()
+        if (!params.skip_methylation) {
+            METHYLATION(aligned_bams, ref_nuc_path)
+            ch_versions = ch_versions.mix(METHYLATION.out.versions)
+            bed_methylation = METHYLATION.out.bed_methylation
+        }
 
         // Step 8: WhatsHap Phasing & Haplotagging
         def phased_bams = aligned_bams
         def phased_vcfs = small_vcfs
-        if (params.species == 'human' || params.enable_phasing) {
+        if (!params.skip_variants && (params.species == 'human' || params.enable_phasing)) {
             PHASING(aligned_bams, small_vcfs, sv_vcfs, ref_nuc_path, ref_fai_path)
             ch_versions = ch_versions.mix(PHASING.out.versions)
             phased_bams = PHASING.out.phased_bam_bai
@@ -114,16 +142,18 @@ workflow NANOPORE_PIPELINE {
         }
 
         // Step 9: Annotation
-        ANNOTATION(phased_vcfs)
-        ch_versions = ch_versions.mix(ANNOTATION.out.versions)
-        def final_vcfs = ANNOTATION.out.annotated_vcf
+        def final_vcfs = phased_vcfs
+        if (!params.skip_variants) {
+            ANNOTATION(phased_vcfs)
+            ch_versions = ch_versions.mix(ANNOTATION.out.versions)
+            final_vcfs = ANNOTATION.out.annotated_vcf
+        }
 
         // Step 10: Clinical Governance
         if (params.enable_audit_trail || params.enable_phi_sanitization) {
             def audit_targets = aligned_bams
-                .join(final_vcfs)
-                .map { sample_id, bam, bai, vcf, tbi ->
-                    tuple(sample_id, [bam, bai, vcf, tbi])
+                .map { sample_id, bam, bai ->
+                    tuple(sample_id, [bam, bai])
                 }
             CLINICAL_GOVERNANCE(aligned_bams, audit_targets)
             ch_versions = ch_versions.mix(CLINICAL_GOVERNANCE.out.versions)
@@ -133,7 +163,7 @@ workflow NANOPORE_PIPELINE {
         def ref_tuple_ch = fastq_ch.map { sample_id, fastq ->
             tuple(sample_id, [ref_nuc_path, ref_fai_path])
         }
-        VISUALIZATION(ref_tuple_ch, phased_bams, final_vcfs, METHYLATION.out.bed_methylation)
+        VISUALIZATION(ref_tuple_ch, phased_bams, final_vcfs, bed_methylation)
         ch_versions = ch_versions.mix(VISUALIZATION.out.versions)
         ch_qc_files = ch_qc_files.mix(VISUALIZATION.out.methylation_html.map { meta, html -> html })
     }
