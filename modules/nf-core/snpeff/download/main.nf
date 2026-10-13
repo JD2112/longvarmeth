@@ -26,4 +26,10 @@ process SNPEFF_DOWNLOAD {
         snpeff: \$( snpEff -version 2>&1 | head -n 1 | sed -e "s/snpEff //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch snpeff_db_ready.txt
+    touch versions.yml
+    """
 }

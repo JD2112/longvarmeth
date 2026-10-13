@@ -40,25 +40,27 @@ Work Dir     : ${workflow.workDir}
         log.info summary
     }
 
-    public static void pipelineCompleted(workflow, params, log) {
-        if (workflow.success) {
+    public static void pipelineCompleted(wf, params, log) {
+        if (!wf) return
+        if (wf.success) {
             log.info """
 ================================================================================
  Pipeline completed successfully!
- Duration : ${workflow.duration}
- CPU hours: ${workflow.cpuHours ?: 'N/A'}
- Output   : ${workflow.launchDir}/${params.outdir}
+ Duration : ${wf.duration ?: 'N/A'}
+ CPU hours: ${wf.cpuHours ?: 'N/A'}
+ Output   : ${wf.launchDir}/${params.outdir}
 ================================================================================
 """
         } else {
             log.error """
 ================================================================================
  Pipeline completed with ERRORS!
- Error message: ${workflow.errorMessage}
- Exit status  : ${workflow.exitStatus}
- Work dir     : ${workflow.workDir}
+ Error message: ${wf.errorMessage ?: 'Unknown error'}
+ Exit status  : ${wf.exitStatus ?: 'N/A'}
+ Work dir     : ${wf.workDir ?: 'N/A'}
 ================================================================================
 """
         }
     }
 }
+

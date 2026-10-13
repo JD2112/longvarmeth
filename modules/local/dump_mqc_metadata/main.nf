@@ -51,4 +51,12 @@ process DUMP_MQC_METADATA {
 
     cp ${methods_description_template} methods_description_mqc.yaml
     """
+
+    stub:
+    """
+    touch pipeline_summary_mqc.yaml
+    touch software_versions_mqc.yaml
+    touch methods_description_mqc.yaml
+    touch versions.yml
+    """
 }

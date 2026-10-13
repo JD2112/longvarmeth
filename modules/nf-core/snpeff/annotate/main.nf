@@ -32,4 +32,12 @@ process SNPEFF {
         snpeff: \$( snpEff -version 2>&1 | head -n 1 | sed -e "s/snpEff //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.snpeff.vcf
+    touch ${sample_id}.snpeff.genes.txt
+    touch ${sample_id}.snpeff.summary.html
+    touch versions.yml
+    """
 }

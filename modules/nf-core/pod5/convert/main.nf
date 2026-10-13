@@ -23,4 +23,10 @@ process POD5_CONVERT {
         pod5: \$( pod5 --version 2>&1 | sed -e "s/pod5 //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch converted_pod5
+    touch versions.yml
+    """
 }

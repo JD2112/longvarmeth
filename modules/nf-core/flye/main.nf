@@ -23,4 +23,13 @@ process FLYE {
         flye: \$( flye --version )
     END_VERSIONS
     """
+
+    stub:
+    """
+    mkdir -p ${sample_id}
+    touch ${sample_id}/assembly.fasta
+    touch ${sample_id}/sample
+    touch versions.yml
+    """
 }
+

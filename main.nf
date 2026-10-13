@@ -36,9 +36,10 @@ workflow {
     }
 
     workflow.onComplete {
-        Utils.pipelineCompleted(workflow, params, log)
+        Utils.pipelineCompleted(it ?: workflow, params, log)
     }
 }
+
 
 
 

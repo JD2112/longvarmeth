@@ -33,4 +33,11 @@ process WHATSHAP_PHASE {
         whatshap: \$( whatshap --version )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.phased.vcf.gz
+    touch ${sample_id}.phased.vcf.gz.tbi
+    touch versions.yml
+    """
 }

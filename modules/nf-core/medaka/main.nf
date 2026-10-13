@@ -31,4 +31,10 @@ process MEDAKA {
         medaka: \$( medaka --version | sed -e "s/medaka //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_polished.fasta
+    touch versions.yml
+    """
 }

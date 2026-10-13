@@ -34,7 +34,7 @@ process JBROWSE_CREATE {
 
     stub:
     """
-    mkdir -p ${sample_id}
+    touch ${sample_id}
     touch versions.yml
     """
 }

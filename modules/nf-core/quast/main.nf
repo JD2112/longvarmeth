@@ -22,4 +22,10 @@ process QUAST {
         quast: \$( quast.py --version | sed -e "s/QUAST v//g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch quast_${sample_id}
+    touch versions.yml
+    """
 }

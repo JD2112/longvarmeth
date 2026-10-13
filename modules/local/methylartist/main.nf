@@ -32,7 +32,7 @@ process METHYLARTIST_LOCUS {
 
     stub:
     """
-    touch ${sample_id}_locus_plot.png
+    touch ${sample_id}_locus_sample.png
     touch versions.yml
     """
 }

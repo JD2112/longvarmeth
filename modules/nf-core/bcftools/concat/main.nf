@@ -23,4 +23,11 @@ process BCFTOOLS_CONCAT {
         bcftools: \$( bcftools --version 2>&1 | head -n 1 | sed -e "s/bcftools //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.vcf.gz
+    touch ${sample_id}.vcf.gz.tbi
+    touch versions.yml
+    """
 }

@@ -41,10 +41,6 @@ process HIPHASE {
     touch ${sample_id}.small_phased.vcf.gz.tbi
     touch ${sample_id}.sv_phased.vcf.gz
     touch ${sample_id}.sv_phased.vcf.gz.tbi
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        hiphase: 1.4.0
-    END_VERSIONS
+    touch versions.yml
     """
 }

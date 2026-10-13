@@ -23,4 +23,12 @@ process FASTQC {
         fastqc: \$( fastqc --version | sed -e "s/FastQC v//g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch sample_fastqc.zip
+    touch sample_fastqc.html
+    touch versions.yml
+    """
 }
+

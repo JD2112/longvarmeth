@@ -23,4 +23,11 @@ process SAMTOOLS_SORT {
         samtools: \$( samtools --version 2>&1 | head -n 1 | sed -e "s/samtools //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.sorted.bam
+    touch ${sample_id}.sorted.bam.bai
+    touch versions.yml
+    """
 }

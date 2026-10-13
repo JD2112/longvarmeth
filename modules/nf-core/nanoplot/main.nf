@@ -28,4 +28,10 @@ process NANOPLOT {
         nanoplot: \$( NanoPlot --version | sed -e "s/NanoPlot //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch nanoplot_${sample_id}
+    touch versions.yml
+    """
 }

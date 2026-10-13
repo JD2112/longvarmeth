@@ -29,4 +29,11 @@ process CNVKIT {
         cnvkit: \$( cnvkit.py version | sed -e "s/cnvkit //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.cns
+    touch ${sample_id}-diagram.pdf
+    touch versions.yml
+    """
 }

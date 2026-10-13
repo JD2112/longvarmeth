@@ -22,4 +22,11 @@ process TRANSFER_TAGS {
         pysam: \$( python -c "import pysam; print(pysam.__version__)" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.mmtags.sorted.bam
+    touch ${sample_id}.mmtags.sorted.bam.bai
+    touch versions.yml
+    """
 }

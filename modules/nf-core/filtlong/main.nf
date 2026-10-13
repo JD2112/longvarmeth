@@ -26,4 +26,10 @@ process FILTLONG {
         filtlong: \$( filtlong --version | sed -e "s/Filtlong v//g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}_filtered.fastq.gz
+    touch versions.yml
+    """
 }

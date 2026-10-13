@@ -23,4 +23,10 @@ process MINIMAP2 {
         minimap2: \$( minimap2 --version )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.sam
+    touch versions.yml
+    """
 }
