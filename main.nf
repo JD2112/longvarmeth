@@ -19,13 +19,21 @@ def logo = """
 
 log.info logo
 
+include { LONGVARMETH } from './workflows/longvarmeth'
 include { NANOPORE_PIPELINE } from './workflows/nanopore'
+include { PACBIO_PIPELINE } from './workflows/pacbio'
 
 workflow {
     Utils.validateParameters(params, log)
     Utils.printSummary(workflow, params, log)
 
-    NANOPORE_PIPELINE()
+    if (params.platform == 'pacbio') {
+        PACBIO_PIPELINE()
+    } else if (params.platform == 'ont') {
+        NANOPORE_PIPELINE()
+    } else {
+        LONGVARMETH()
+    }
 }
 
 workflow.onComplete {

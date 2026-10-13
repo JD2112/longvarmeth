@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented **`CLINICAL_GOVERNANCE`** subworkflow (`subworkflows/local/governance`).
   - **`SANITIZE_METADATA`**: Automatically strips patient personal health information (PHI), hospital run barcodes, and sensitive SAM/VCF headers prior to publication.
   - **`GENERATE_AUDIT_MANIFEST`**: Emits cryptographic SHA-256 file manifests (`<sample>_checksums.sha256`) and structured provenance run records (`<sample>_manifest.json`) for forensic determinism.
+- **Interactive Clinical Methylation Dashboard (`JD2112/gms-nallo-methylation-dashboard` Adapted)**:
+  - Added **`METHYLATION_DASHBOARD`** module (`modules/local/methylation_dashboard`) generating interactive AG-Grid and IGV-Web HTML reports (`<sample>_methylation_dashboard.html`).
+  - Supports phased DMR triage, allele-specific 5mC/5hmC inspection, and direct links to gnomAD v4 and NCBI GDV.
+  - Enabled automatically for clinical human runs (`-profile human`) and configurable via `--enable_methylation_dashboard`.
 - **Viral Genomics Profile**:
   - Expanded `conf/virus.config` with specialized parameters for haploid, high-heterogeneity viral quasispecies detection (relaxed 5% frequency cutoffs), amplicon-aware quality filtering, and metagenomic assembly options.
 - **Dedicated CI/Test Suites**:

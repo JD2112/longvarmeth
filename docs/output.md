@@ -37,6 +37,8 @@ results/
 │   └── <sample>_manifest.json    # Machine-readable execution provenance log (tools, seeds, parameters)
 ├── jbrowse/
 │   └── <sample>/             # Standalone interactive JBrowse 2 web instances
+├── reports/
+│   └── methylation/          # Interactive clinical methylation dashboards (AG-Grid, IGV-Web, gnomAD links)
 ├── multiqc/
 │   ├── multiqc_report.html   # Consolidated interactive QC summary report
 │   └── multiqc_data/         # Aggregated metrics tables and logs
@@ -63,4 +65,11 @@ Emitted when `--enable_trgt true` is specified:
 * **`<sample>.spanning.bam`**: Reads spanning repeat loci tagged with repeat-allele assignments for visual inspection.
 
 ### `alignments/`
+* **`*.bam` / `*.bai`**: Coordinate-sorted, indexed alignments preserving raw sequencing kinetic tags (`MM`, `ML`).
+* **`haplotagged/*.bam`**: Read alignments with added haplotype assignment tags (`HP:i:1`, `HP:i:2`) for allele-specific visualization in IGV and JBrowse 2.
+
+### `reports/methylation/` (Clinical Methylation Dashboard)
+Generated when `--enable_methylation_dashboard true` is set (enabled automatically with `-profile human`):
+* **`<sample>_methylation_dashboard.html`**: Self-contained clinical web interface adapted from `gms-nallo-methylation-dashboard`. Features an interactive AG-Grid triage table (DMRs, expected categories, QC filters), embedded lazy-loading IGV-Web showing haplotagged phased reads and base modifications (5mC/5hmC), and instant one-click hyperlinks to gnomAD v4 and NCBI GDV.
+
 * **`alignments/tagged/`**: Contains `<sample>.sanitized.bam` or `<sample>.mmtags.sorted.bam`. These BAM files preserve the original `MM` and `ML` SAM tags representing 5mC, 5hmC, or 6mA modifications without stripping downstream headers.

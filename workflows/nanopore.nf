@@ -1,20 +1,29 @@
+// workflows/nanopore.nf
+// Native Oxford Nanopore pipeline entrypoint implementing the 12-step architecture
+
+include { INPUT_CHECK } from '../subworkflows/local/input_check'
+include { READ_QC } from '../subworkflows/local/qc'
 include { BASECALL_DEMUX } from '../subworkflows/local/basecall_demux'
-include { QC_ASSEMBLY } from '../subworkflows/local/qc_assembly'
-include { ALIGN_VARIANT } from '../subworkflows/local/align_variant'
-include { ANNOTATION_VIS } from '../subworkflows/local/annotation_vis'
-include { MULTIQC } from '../modules/nf-core/multiqc'
-include { DUMP_MQC_METADATA } from '../modules/local/dump_mqc_metadata'
-include { MERGE_BAMS } from '../modules/local/merge_bams'
+include { DE_NOVO_ASSEMBLY } from '../subworkflows/local/assembly'
+include { ALIGNMENT } from '../subworkflows/local/alignment'
+include { VARIANT_CALLING } from '../subworkflows/local/variant_calling'
+include { STRUCTURAL_VARIANTS } from '../subworkflows/local/structural_variants'
+include { METHYLATION } from '../subworkflows/local/methylation'
+include { PHASING } from '../subworkflows/local/phasing'
+include { ANNOTATION } from '../subworkflows/local/annotation'
 include { CLINICAL_GOVERNANCE } from '../subworkflows/local/governance'
+include { VISUALIZATION } from '../subworkflows/local/visualization'
+include { REPORTING } from '../subworkflows/local/reporting'
+include { MERGE_BAMS } from '../modules/local/merge_bams'
 
 workflow NANOPORE_PIPELINE {
-    // 1. Parse samplesheet
     def samplesheet_file = file(params.input)
     if (!samplesheet_file.exists()) {
         error "Samplesheet file not found at: ${params.input}"
     }
 
     ch_versions = Channel.empty()
+    ch_qc_files = Channel.empty()
 
     def samples_ch = Channel
         .fromPath(params.input)
@@ -24,94 +33,111 @@ workflow NANOPORE_PIPELINE {
                 row.run_id,
                 row.input_path,
                 row.input_type.toLowerCase().trim(),
-                row.kit,
-                row.model,
-                row.modified_bases_model
+                row.kit ?: '',
+                row.model ?: '',
+                row.modified_bases_model ?: ''
             )
         }
 
-    // Split input channels based on input type
-    def raw_runs = samples_ch.filter { it[2] == 'pod5' || it[2] == 'fast5' }
-    def direct_bam_runs = samples_ch.filter { it[2] in ['bam', 'pacbio_bam', 'pacbio_hifi', 'hifi', 'ubam'] }
+    // Step 1: Input Checksum
+    INPUT_CHECK(samples_ch)
+    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
 
-    // 2. Basecall & Demux (for raw pod5/fast5)
+    def raw_runs = samples_ch.filter { it[2] == 'pod5' || it[2] == 'fast5' }
+    def direct_bam_runs = samples_ch.filter { it[2] == 'bam' }
+
+    // Step 3 (Raw ONT): Dorado GPU Basecalling & Demultiplexing
     BASECALL_DEMUX(raw_runs)
     def basecalled_bams = BASECALL_DEMUX.out.demux_bams
     ch_versions = ch_versions.mix(BASECALL_DEMUX.out.versions)
 
-    // Format direct BAMs to match (sample_id, bam)
-    def direct_bams_raw = direct_bam_runs.map { run_id, input_path, input_type, kit, model, modified_bases_model ->
+    def direct_bams_raw = direct_bam_runs.map { run_id, input_path, input_type, kit, model, mod_model ->
         tuple(run_id, file(input_path))
     }
-
     MERGE_BAMS(direct_bams_raw)
     ch_versions = ch_versions.mix(MERGE_BAMS.out.versions)
     def direct_bams = MERGE_BAMS.out.bam
 
-    // Combine all demultiplexed/input BAMs
     def all_demux_bams = basecalled_bams.concat(direct_bams)
 
-    // 3. QC & Optional Assembly
-    QC_ASSEMBLY(all_demux_bams)
-    ch_versions = ch_versions.mix(QC_ASSEMBLY.out.versions)
-    def fastq_ch = QC_ASSEMBLY.out.fastq
+    // Step 2: Read QC
+    READ_QC(all_demux_bams)
+    ch_versions = ch_versions.mix(READ_QC.out.versions)
+    def fastq_ch = READ_QC.out.fastq
+    ch_qc_files = ch_qc_files
+        .concat(READ_QC.out.fastqc_files)
+        .concat(READ_QC.out.nanoplot_files)
+        .concat(READ_QC.out.cramino_files)
 
-    // 4. Alignment & Variant Calling
-    ALIGN_VARIANT(fastq_ch, all_demux_bams)
-    ch_versions = ch_versions.mix(ALIGN_VARIANT.out.versions)
-
-    // 5. Visualisation / Annotation
-    def assembly_ch = Channel.empty()
+    // Step 3: De Novo Assembly (Flye)
     if (params.run_type == 'de_novo_assembly') {
-        assembly_ch = QC_ASSEMBLY.out.assembly
-    } else {
-        if (params.ref_nuc) {
-            def ref_nuc_file = file(params.ref_nuc)
-            def ref_nuc_fai = file("${params.ref_nuc}.fai")
-            assembly_ch = fastq_ch.map { sample_id, fastq ->
-                tuple(sample_id, [ref_nuc_file, ref_nuc_fai])
-            }
-        }
+        DE_NOVO_ASSEMBLY(fastq_ch)
+        ch_versions = ch_versions.mix(DE_NOVO_ASSEMBLY.out.versions)
+        ch_qc_files = ch_qc_files
+            .concat(DE_NOVO_ASSEMBLY.out.quast_reports)
+            .concat(DE_NOVO_ASSEMBLY.out.busco_reports)
     }
 
+    // Reference-guided Steps 4 - 11
     if (params.run_type == 'reference_based' && params.ref_nuc) {
-        ANNOTATION_VIS(
-            assembly_ch,
-            ALIGN_VARIANT.out.tagged_nuc_bam_bai.map { tuple(it[0], it[1], it[2]) },
-            ALIGN_VARIANT.out.vcf_nuc.map { tuple(it[0], it[1], it[2]) }
-        )
-        ch_versions = ch_versions.mix(ANNOTATION_VIS.out.versions)
+        def ref_nuc_path = file(params.ref_nuc)
+        def ref_fai_path = file("${params.ref_nuc}.fai")
+
+        // Step 4: Minimap2 Alignment & Tag Restoration
+        ALIGNMENT(fastq_ch, all_demux_bams, ref_nuc_path)
+        ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
+        def aligned_bams = ALIGNMENT.out.aligned_bam_bai
+
+        // Step 5: Small Variants
+        VARIANT_CALLING(aligned_bams, ref_nuc_path, ref_fai_path)
+        ch_versions = ch_versions.mix(VARIANT_CALLING.out.versions)
+        def small_vcfs = VARIANT_CALLING.out.vcf_tbi
+        ch_qc_files = ch_qc_files.concat(small_vcfs.map { it[1] })
+
+        // Step 6: Structural Variants & CNVs (Sniffles2 / CNVkit)
+        STRUCTURAL_VARIANTS(aligned_bams, ref_nuc_path)
+        ch_versions = ch_versions.mix(STRUCTURAL_VARIANTS.out.versions)
+        def sv_vcfs = STRUCTURAL_VARIANTS.out.sv_vcf
+
+        // Step 7: Methylation (Modkit pileup)
+        METHYLATION(aligned_bams, ref_nuc_path)
+        ch_versions = ch_versions.mix(METHYLATION.out.versions)
+
+        // Step 8: WhatsHap Phasing & Haplotagging
+        def phased_bams = aligned_bams
+        def phased_vcfs = small_vcfs
+        if (params.species == 'human' || params.enable_phasing) {
+            PHASING(aligned_bams, small_vcfs, sv_vcfs, ref_nuc_path, ref_fai_path)
+            ch_versions = ch_versions.mix(PHASING.out.versions)
+            phased_bams = PHASING.out.phased_bam_bai
+            phased_vcfs = PHASING.out.phased_vcf
+        }
+
+        // Step 9: Annotation
+        ANNOTATION(phased_vcfs)
+        ch_versions = ch_versions.mix(ANNOTATION.out.versions)
+        def final_vcfs = ANNOTATION.out.annotated_vcf
+
+        // Step 10: Clinical Governance
+        if (params.enable_audit_trail || params.enable_phi_sanitization) {
+            def audit_targets = aligned_bams
+                .join(final_vcfs)
+                .map { sample_id, bam, bai, vcf, tbi ->
+                    tuple(sample_id, [bam, bai, vcf, tbi])
+                }
+            CLINICAL_GOVERNANCE(aligned_bams, audit_targets)
+            ch_versions = ch_versions.mix(CLINICAL_GOVERNANCE.out.versions)
+        }
+
+        // Step 11: Visualization (JBrowse 2, Methylartist & Methylation Dashboard)
+        def ref_tuple_ch = fastq_ch.map { sample_id, fastq ->
+            tuple(sample_id, [ref_nuc_path, ref_fai_path])
+        }
+        VISUALIZATION(ref_tuple_ch, phased_bams, final_vcfs, METHYLATION.out.bed_methylation)
+        ch_versions = ch_versions.mix(VISUALIZATION.out.versions)
+        ch_qc_files = ch_qc_files.mix(VISUALIZATION.out.methylation_html.map { meta, html -> html })
     }
 
-    // 6. Clinical Governance & Audit Trail (milou-inspired)
-    if (params.enable_audit_trail || params.enable_phi_sanitization) {
-        def audit_targets = ALIGN_VARIANT.out.tagged_nuc_bam_bai
-            .join(ALIGN_VARIANT.out.vcf_nuc)
-            .map { sample_id, bam, bai, vcf, tbi ->
-                tuple(sample_id, [bam, bai, vcf, tbi])
-            }
-        CLINICAL_GOVERNANCE(ALIGN_VARIANT.out.tagged_nuc_bam_bai, audit_targets)
-        ch_versions = ch_versions.mix(CLINICAL_GOVERNANCE.out.versions)
-    }
-
-    // 7. MQC Metadata Generation
-    def methods_template = file("${projectDir}/assets/methods_description.yml")
-    DUMP_MQC_METADATA(methods_template)
-
-    // 7. MultiQC Report
-    def multiqc_files = Channel.empty()
-        .concat(QC_ASSEMBLY.out.fastqc_files)
-        .concat(QC_ASSEMBLY.out.nanoplot_files)
-        .concat(QC_ASSEMBLY.out.cramino_files)
-        .concat(QC_ASSEMBLY.out.quast_files)
-        .concat(QC_ASSEMBLY.out.busco_files)
-        .concat(ALIGN_VARIANT.out.vcf_nuc.map { it[1] })
-        .concat(DUMP_MQC_METADATA.out.summary)
-        .concat(DUMP_MQC_METADATA.out.versions)
-        .concat(DUMP_MQC_METADATA.out.methods)
-        .concat(ch_versions)
-        .collect()
-
-    def multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
-    MULTIQC(multiqc_files, multiqc_config)
+    // Step 12: Reporting
+    REPORTING(ch_qc_files, ch_versions)
 }
