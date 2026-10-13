@@ -34,10 +34,11 @@ workflow {
     } else {
         LONGVARMETH()
     }
+
+    workflow.onComplete {
+        Utils.pipelineCompleted(workflow, params, log)
+    }
 }
 
-workflow.onComplete {
-    Utils.pipelineCompleted(workflow, params, log)
-}
 
 
