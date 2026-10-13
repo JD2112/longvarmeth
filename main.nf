@@ -2,6 +2,10 @@
 
 nextflow.enable.dsl=2
 
+include { LONGVARMETH } from './workflows/longvarmeth'
+include { NANOPORE_PIPELINE } from './workflows/nanopore'
+include { PACBIO_PIPELINE } from './workflows/pacbio'
+
 def logo = """
 ================================================================================
   _                                                    _   _     
@@ -19,9 +23,6 @@ def logo = """
 
 log.info logo
 
-include { LONGVARMETH } from './workflows/longvarmeth'
-include { NANOPORE_PIPELINE } from './workflows/nanopore'
-include { PACBIO_PIPELINE } from './workflows/pacbio'
 
 workflow {
     Utils.validateParameters(params, log)
