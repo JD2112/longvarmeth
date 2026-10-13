@@ -6,7 +6,8 @@ include { LONGVARMETH } from './workflows/longvarmeth'
 include { NANOPORE_PIPELINE } from './workflows/nanopore'
 include { PACBIO_PIPELINE } from './workflows/pacbio'
 
-def logo = """
+workflow {
+    def logo = """
 ================================================================================
   _                                                    _   _     
  | | ___  _ __   __ _  __   ____ _ _ __ _ __ ___   ___| |_| |__  
@@ -20,12 +21,10 @@ def logo = """
   species : ${params.species} | mode : ${params.run_type}
 ================================================================================
 """
+    log.info logo
 
-log.info logo
-
-
-workflow {
     Utils.validateParameters(params, log)
+
     Utils.printSummary(workflow, params, log)
 
     if (params.platform == 'pacbio') {
