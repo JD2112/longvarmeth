@@ -36,15 +36,19 @@ workflow VISUALIZATION {
     }
 
     // 2. Automated JBrowse 2 Directory Generation
-    def jbrowse_input = tagged_bams
-        .join(vcf_tbi)
-        .join(assembly_ref)
-        .map { sample_id, bam, bai, vcf, tbi, ref_files ->
-            tuple(sample_id, ref_files, bam, bai, vcf, tbi)
-        }
+    def ch_jbrowse = Channel.empty()
+    if (!params.skip_jbrowse) {
+        def jbrowse_input = tagged_bams
+            .join(vcf_tbi)
+            .join(assembly_ref)
+            .map { sample_id, bam, bai, vcf, tbi, ref_files ->
+                tuple(sample_id, ref_files, bam, bai, vcf, tbi)
+            }
 
-    JBROWSE_CREATE(jbrowse_input)
-    ch_versions = ch_versions.mix(JBROWSE_CREATE.out.versions)
+        JBROWSE_CREATE(jbrowse_input)
+        ch_versions = ch_versions.mix(JBROWSE_CREATE.out.versions)
+        ch_jbrowse  = JBROWSE_CREATE.out.jbrowse_dir
+    }
 
 
     // 3. Clinical Methylation Dashboard (adapted from gms-nallo)
@@ -56,7 +60,7 @@ workflow VISUALIZATION {
     }
 
     emit:
-    jbrowse_dir       = JBROWSE_CREATE.out.jbrowse_dir
+    jbrowse_dir       = ch_jbrowse
     methylation_html  = ch_reports
     versions          = ch_versions
 }

@@ -16,6 +16,7 @@ include { CLINICAL_GOVERNANCE } from '../subworkflows/local/governance'
 include { VISUALIZATION } from '../subworkflows/local/visualization'
 include { REPORTING } from '../subworkflows/local/reporting'
 include { MERGE_BAMS } from '../modules/local/merge_bams'
+include { MOSDEPTH } from '../modules/nf-core/mosdepth'
 
 workflow LONGVARMETH {
     // Check samplesheet exists
@@ -123,6 +124,12 @@ workflow LONGVARMETH {
             ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
             aligned_bams = aligned_bams.mix(ALIGNMENT.out.aligned_bam_bai)
         }
+
+        // Post-alignment Coverage QC (Mosdepth)
+        MOSDEPTH(aligned_bams, ref_nuc_path)
+        ch_versions = ch_versions.mix(MOSDEPTH.out.versions)
+        ch_qc_files = ch_qc_files.concat(MOSDEPTH.out.global_txt.map { it[1] })
+                                 .concat(MOSDEPTH.out.summary_txt.map { it[1] })
 
         // ---------------------------------------------------------------------
         // STEP 5: Small Variant Calling (SNVs & InDels via BCFtools / DeepVariant)
