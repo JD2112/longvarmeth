@@ -34,4 +34,15 @@ process MOSDEPTH {
         mosdepth: \$( mosdepth --version 2>&1 | sed 's/mosdepth //g' )
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch ${sample_id}.mosdepth.global.dist.txt
+    touch ${sample_id}.mosdepth.region.dist.txt
+    touch ${sample_id}.mosdepth.summary.txt
+    touch ${sample_id}.per-base.bed.gz
+    touch ${sample_id}.regions.bed.gz
+    touch ${sample_id}.quantized.bed.gz
+    touch versions.yml
+    """
 }
