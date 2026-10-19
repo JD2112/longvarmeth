@@ -1,5 +1,5 @@
 process METHYLATION_DASHBOARD {
-    tag "$meta.id"
+    tag "$sample_id"
     label 'process_single'
 
     conda "conda-forge::python=3.10"
@@ -8,24 +8,24 @@ process METHYLATION_DASHBOARD {
         'biocontainers/python:3.10' }"
 
     input:
-    tuple val(meta), path(profile_tsv)
+    tuple val(sample_id), path(profile_tsv)
     path template_html
 
     output:
-    tuple val(meta), path("*.html"), emit: html
-    path "versions.yml"            , emit: versions
+    tuple val(sample_id), path("*.html"), emit: html
+    path "versions.yml"                 , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${sample_id}"
     """
     generate_methylation_dashboard.py \\
         --profile "${profile_tsv}" \\
         --template "${template_html}" \\
-        --sample_id "${meta.id}" \\
+        --sample_id "${sample_id}" \\
         --output "${prefix}_methylation_dashboard.html" \\
         ${args}
 
@@ -37,7 +37,7 @@ process METHYLATION_DASHBOARD {
     """
 
     stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${sample_id}"
     """
     touch "${prefix}_methylation_dashboard.html"
 
