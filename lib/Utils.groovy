@@ -43,11 +43,12 @@ Work Dir     : ${workflow.workDir}
     public static void pipelineCompleted(wf, params, log) {
         if (!wf) return
         if (wf.success) {
+            def cpuHours = wf.stats?.computeTimeFmt ?: (wf.stats?.cpuTime ? String.format("%.2f h", wf.stats.cpuTime / 3600000.0) : (wf.cpuHours ?: 'N/A'))
             log.info """
 ================================================================================
  Pipeline completed successfully!
  Duration : ${wf.duration ?: 'N/A'}
- CPU hours: ${wf.cpuHours ?: 'N/A'}
+ CPU hours: ${cpuHours}
  Output   : ${wf.launchDir}/${params.outdir}
 ================================================================================
 """

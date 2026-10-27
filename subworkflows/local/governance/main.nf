@@ -6,8 +6,8 @@ process SANITIZE_METADATA {
     tag "$sample_id"
     label 'process_single'
 
-    conda "bioconda::samtools=1.19.2 bioconda::bcftools=1.19"
-    container "quay.io/biocontainers/mulled-v2-42f3ea21636d68b3a3822d52504b022089b21618:0f8ab8c73856d10f2142e05f63d662c5fb3ea8c7-0"
+    conda "bioconda::samtools=1.23.1 bioconda::bcftools=1.19"
+    container "quay.io/biocontainers/samtools:1.23.1--ha83d96e_0"
 
     input:
     tuple val(sample_id), path(bam), path(bai)
@@ -78,7 +78,7 @@ process GENERATE_AUDIT_MANIFEST {
         "pipeline": "longvarmeth",
         "sample_id": "${sample_id}",
         "timestamp_utc": "\$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-        "workflow_commit": "${workflow.commit ?: 'dev'}",
+        "workflow_commit": "${workflow.commitId ?: 'dev'}",
         "workflow_version": "${workflow.manifest.version ?: '1.0.0'}",
         "parameters": {
             "platform": "${params.platform}",

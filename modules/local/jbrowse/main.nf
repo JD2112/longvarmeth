@@ -17,13 +17,13 @@ process JBROWSE_CREATE {
     """
     jbrowse create ${sample_id}
     if [ -f "${fasta}" ]; then
-        jbrowse add-assembly ${fasta} --load copy --name "${sample_id}_assembly" --out ${sample_id}
+        jbrowse add-assembly ${fasta} --load symlink --name "${sample_id}_assembly" --out ${sample_id}
     fi
     if [ -f "${bam}" ]; then
-        jbrowse add-track ${bam} --load copy --name "${sample_id}_bam" --out ${sample_id}
+        jbrowse add-track ${bam} --load symlink --name "${sample_id}_bam" --out ${sample_id}
     fi
     if [ -f "${vcf}" ]; then
-        jbrowse add-track ${vcf} --load copy --name "${sample_id}_vcf" --out ${sample_id}
+        jbrowse add-track ${vcf} --load symlink --name "${sample_id}_vcf" --out ${sample_id}
     fi
 
     cat <<-END_VERSIONS > versions.yml

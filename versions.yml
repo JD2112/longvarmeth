@@ -22,6 +22,7 @@ tools:
   vep: '116.0'
   jbrowse2: '4.3.0'
   multiqc: '1.18'
+  mosdepth: '0.3.8'
   cramino: '0.13.0'
   fastqc: '0.12.1'
   nanoplot: '1.42.0'
