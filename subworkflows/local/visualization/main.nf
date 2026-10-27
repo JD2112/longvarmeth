@@ -51,6 +51,7 @@ workflow VISUALIZATION {
     }
 
 
+
     // 3. Clinical Methylation Dashboard (adapted from gms-nallo)
     if (params.enable_methylation_dashboard) {
         def template_file = file("${projectDir}/assets/methylation_dashboard/dashboard-template.html")
