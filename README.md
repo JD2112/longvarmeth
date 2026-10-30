@@ -7,7 +7,11 @@
 [![code style](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/black.json)](https://github.com/psf/black)
 [![flake8](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/flake8.json)](https://flake8.pycqa.org)
 
-A modular, clinical-grade Nextflow DSL2 platform for single-molecule long-read genomics and epigenomics (**Oxford Nanopore & PacBio HiFi**). It features an explicit 12-stage analytical architecture with host GPU-accelerated basecalling/demux, pre- and post-alignment QC, *de novo* assembly & polishing, kinetic tag preservation (`MM`/`ML`), small and structural variant calling (SNV/InDel/SV/CNV/STR), haplotype co-phasing, strict clinical governance & PHI sanitization (inspired by `milou`), and interactive reporting.
+A modular Nextflow DSL2 evaluation and research platform with forensic clinical governance controls for single-molecule long-read genomics and epigenomics (**Oxford Nanopore & PacBio HiFi**). It features an explicit 12-stage analytical architecture with host GPU-accelerated basecalling/demux, pre- and post-alignment QC, *de novo* assembly & polishing, native kinetic tag streaming (`MM`/`ML`), modular small variant calling (`DeepVariant`, `Clair3`, `BCFtools`), structural variant calling (`Sniffles2`, `TRGT`, `CNVkit`), joint multi-variant haplotype co-phasing (`HiPhase`, `WhatsHap`), automated truth-set benchmarking (`hap.py`, `Truvari`), full-chain PHI de-identification and SHA-256 provenance manifests (inspired by `milou`), and a transparent MultiQC execution status matrix.
+
+> [!IMPORTANT]
+> **Intended Use & Regulatory Statement**:  
+> LongVarMeth is designed for **Research Use Only (RUO)** and clinical evaluation. It is not an FDA-cleared or CE-IVD diagnostic device. While the architecture enforces strict clinical governance mechanisms (PHI scrub, deterministic anonymization, cryptographic audit trail), clinical laboratories must establish analytical validity independently in compliance with local regulatory standards (CAP/CLIA, ISO 15189) before reporting clinical findings. See [docs/validation.md](docs/validation.md).
 
 ## Pipeline Architecture
 
@@ -18,19 +22,18 @@ A modular, clinical-grade Nextflow DSL2 platform for single-molecule long-read g
 
 | Stage | Oxford Nanopore <br> (`--platform ont`) | PacBio HiFi <br> (`--platform pacbio`) | Inputs $\rightarrow$ Outputs |
 | :--- | :--- | :--- | :--- |
-| **Input Checksum** | Ingestion SHA-256 verification | Ingestion SHA-256 verification | Raw files $\rightarrow$<br>Audit manifest |
-| **Read QC** | `FastQC` + `NanoPlot`<br>`Cramino` + `samtools` | `Cramino` + `FastQC`<br>`NanoPlot` | Reads / BAM $\rightarrow$<br>Yield & Q-scores |
-| **Basecalling**<br>*(ONT raw)* | Host GPU `Dorado`<br>+ `pod5 convert` demux | *On-instrument demux*<br>(Revio / Sequel IIe) | `pod5` / `fast5` $\rightarrow$<br>Basecalled BAM |
-| **Assembly**<br>*(de novo)* | `Flye --nano-hq`<br>+ `Medaka` polishing | `Hifiasm` (diploid)<br>+ `Racon` polishing | Long reads $\rightarrow$<br>Assembly FASTA + BUSCO |
-| **Alignment** | `minimap2 -ax map-ont`<br>+ `MM`/`ML` tag restoration | `pbmm2 align --preset HIFI`<br>*(native kinetic preservation)* | Reads + Ref $\rightarrow$<br>Sorted BAM (`MM`/`ML`) |
-| **Small Variants** | `Clair3` (ONT model)<br>`DeepVariant` / `BCFtools` | `DeepVariant` (HiFi model)<br>`Clair3` / `BCFtools` | Sorted BAM $\rightarrow$<br>SNV / InDel VCF |
-| **SVs, CNVs & STRs** | `Sniffles2` (SVs)<br>`CNVkit` (CNVs) | `Sniffles2` (SVs) + `HiFiCNV`<br>`TRGT` (tandem repeats) | Sorted BAM $\rightarrow$<br>SV, CNV & STR calls |
-| **Epigenomics** | `modkit pileup`<br>(5mC / 5hmC / 6mA motifs) | `pbcpgtools` + `methbat`<br>+ `modkit pileup` | Sorted BAM $\rightarrow$<br>BedMethyl & CpG scores |
-| **Phasing** | `WhatsHap phase`<br>+ `haplotag` (`HP:i:1/2`) | `HiPhase`<br>*(co-phases SNV + SV + STR)* | VCFs + BAM $\rightarrow$<br>Phased VCF & Haplotagged BAM |
-| **Annotation** | `Ensembl VEP`<br>`SnpEff` + ClinVar | `Ensembl VEP`<br>`SnpEff` + ClinVar | Phased VCF $\rightarrow$<br>Annotated clinical VCF |
-| **Governance** | `SANITIZE_METADATA` (PHI scrub)<br>+ cryptographic SHA-256 manifest | `SANITIZE_METADATA` (PHI scrub)<br>+ cryptographic SHA-256 manifest | Artifacts $\rightarrow$<br>Sanitized BAM & manifest |
-| **Visualization** | `JBrowse 2` web workspace<br>`Methylartist` locus plots<br>Interactive Methylation Dashboard | `JBrowse 2` web workspace<br>`Methylartist` locus plots<br>Interactive Methylation Dashboard | BAMs, VCFs $\rightarrow$<br>Web workspace & HTML reports |
-| **Reporting** | `MultiQC` consolidated dashboard<br>+ Executive clinical summary | `MultiQC` consolidated dashboard<br>+ Executive clinical summary | Metrics $\rightarrow$<br>MultiQC HTML report |
+| **1. Input Checksum** | Ingestion SHA-256 verification | Ingestion SHA-256 verification | Raw files $\rightarrow$ Audit manifest |
+| **2. Basecalling & Demux**<br>*(ONT raw)* | Host GPU `Dorado`<br>+ `pod5 convert` demux | *On-instrument demux*<br>(Revio / Sequel IIe) | `pod5` / `fast5` $\rightarrow$ Basecalled BAM |
+| **3. Read QC & Trimming** | `FastQC` + `NanoPlot`<br>`Cramino` + `Filtlong` | `Cramino` + `FastQC`<br>`NanoPlot` | Reads / BAM $\rightarrow$ Yield & Q-scores |
+| **4. Alignment & Tag Streaming** | `minimap2 -ax map-ont -y`<br>*(streaming MM/ML tag preservation)* | `pbmm2 align --preset HIFI`<br>*(native kinetic preservation)* | Reads + Ref $\rightarrow$ Sorted BAM (`MM`/`ML`) |
+| **5. Mod Tag Verification** | `CHECK_MOD_TAGS`<br>*(samtools view aux check)* | `CHECK_MOD_TAGS`<br>*(kinetics validation)* | Sorted BAM $\rightarrow$ Kinetic Tag Audit Log |
+| **6. Small Variants** | `DeepVariant` (`ONT_R104`)<br>`Clair3` / `BCFtools` | `DeepVariant` (`PACBIO`)<br>`Clair3` / `BCFtools` | Sorted BAM $\rightarrow$ SNV / InDel VCF |
+| **7. SVs, CNVs & STRs** | `Sniffles2` (SVs)<br>`CNVkit` (CNVs) | `Sniffles2` (SVs) + `HiFiCNV`<br>`TRGT` (tandem repeats) | Sorted BAM $\rightarrow$ SV, CNV & STR calls |
+| **8. Epigenomics** | `modkit pileup`<br>(5mC / 5hmC / 6mA motifs) | `pbcpgtools` (`aligned_bam_to_cpg_scores`)<br>+ `methbat` | Sorted BAM $\rightarrow$ BedMethyl & CpG scores |
+| **9. Joint Co-Phasing** | `WhatsHap phase`<br>+ `haplotag` (`HP:i:1/2`) | `HiPhase`<br>*(joint SNV + SV + STR co-phasing)* | VCFs + BAM $\rightarrow$ Phased VCF & Haplotagged BAM |
+| **10. Truth-Set Benchmark** | `hap.py` (SNVs/Indels)<br>+ `Truvari` (SVs) | `hap.py` (SNVs/Indels)<br>+ `Truvari` (SVs) | VCFs + GIAB HG002 $\rightarrow$ Precision/Recall/F1 TSVs |
+| **11. Clinical Governance** | `SANITIZE_BAM` + `SANITIZE_VCF`<br>+ cryptographic SHA-256 manifest | `SANITIZE_BAM` + `SANITIZE_VCF`<br>+ cryptographic SHA-256 manifest | Artifacts $\rightarrow$ Sanitized BAM/VCF & manifest.json |
+| **12. Visualization & Reporting**| `JBrowse 2` + `Methylartist`<br>`MultiQC` Execution Status Matrix | `JBrowse 2` + `Methylation Dashboard`<br>`MultiQC` Execution Status Matrix | BAMs, VCFs $\rightarrow$ MultiQC Report & Tracks |
 
 ### Multi-Organism Tailoring Matrix
 
@@ -111,7 +114,47 @@ You can configure execution parameters from the command line or via custom confi
 | `--enable_vep` | boolean | `false` | Enable Ensembl VEP functional variant annotation |
 | `--enable_snpeff` | boolean | `false` | Enable SnpEff variant annotation |
 | `--enable_methylation_dashboard` | boolean | `false` (auto in `human`) | Generate interactive AG-Grid & IGV-Web clinical methylation report (adapted from `gms-nallo`) |
-| `--dorado_bin` | string | `/path/to/dorado`| Host path to Dorado binary for host GPU-accelerated basecalling |
+| `--run_benchmarking` | boolean | `false` | Enable empirical truth-set concordance evaluation (`hap.py` + `Truvari`) |
+| `--benchmark_truth_vcf` | string | `""` | Path to NIST GIAB HG002 small variant truth VCF |
+| `--benchmark_truth_bed` | string | `""` | Path to NIST GIAB HG002 small variant benchmark region BED |
+| `--benchmark_sv_truth_vcf` | string | `""` | Path to NIST GIAB HG002 structural variant truth VCF |
+| `--benchmark_sv_truth_bed` | string | `""` | Path to NIST GIAB HG002 structural variant benchmark region BED |
+| `--dorado_bin` | string | `dorado` | Host path to Dorado binary for host GPU-accelerated basecalling |
+
+---
+
+## Biological Scope & Technology Limitations
+
+Understanding the physical and algorithmic boundaries of single-molecule sequencing is critical for valid result interpretation:
+
+1. **Oxford Nanopore R10.4.1 Chemistry**:
+   - **Simplex vs Duplex**: Simplex R10.4.1 reads achieve modal Q20+ raw accuracy. However, small insertion/deletion (indel) errors persist in homopolymer tracts ($N \ge 6$) due to ionic current dwell-time saturation. Indel findings in homopolymers should be interpreted conservatively.
+   - **Base Modifications**: Oxford Nanopore chemistry natively distinguishes 5mC, 5hmC, and unmethylated cytosines using `modkit pileup`. High-confidence quantification requires $\ge 15\times$ read depth per CpG site.
+2. **PacBio HiFi Chemistry (Revio / Sequel IIe)**:
+   - **Consensus Accuracy**: HiFi circular consensus sequencing achieves Q30+ base quality, yielding exceptional SNV and indel accuracy ($F_1 > 0.99$).
+   - **Kinetics**: 5mC detection relies on inter-pulse duration (IPD) kinetics aggregated via `pbcpgtools` (`aligned_bam_to_cpg_scores`). BAM inputs must preserve kinetics tags (`MM`, `ML` or pulse tags).
+3. **Joint Haplotype Co-Phasing (`HiPhase` / `WhatsHap`)**:
+   - **Phase Block Continuity**: Long-range phase blocks depend on read length N50 and sample heterozygosity. In extended runs of homozygosity (ROH) or low-complexity segmental duplications, phase blocks break deterministically.
+   - **Multi-Variant Resolution**: HiPhase jointly co-phases small variants, SVs (`Sniffles2`), and STR repeat expansions (`TRGT`) into unified phase sets (`PS`).
+
+---
+
+## Truth-Set Benchmarking & MultiQC Execution Matrix
+
+LongVarMeth introduces automated truth-set benchmarking using the NIST / GIAB HG002 reference standard:
+
+```bash
+# Run automated GIAB benchmark check in stub mode:
+nextflow run main.nf -profile test_giab -stub
+```
+
+The resulting `multiqc_report.html` features:
+- **Pipeline Execution Status Matrix**: Explicit table classifying each of the 12 pipeline stages as `COMPLETED`, `SKIPPED (Pre-aligned Input)`, `SKIPPED (Parameter-Disabled)`, or `FAILED`, ensuring incomplete runs are never mistaken for completed analyses.
+- **Hap.py Concordance Table**: Precision, recall, and F1 scores stratified by variant class.
+- **Truvari SV Benchmark Table**: TP, FP, FN, recall, and F1 scores for structural variants $\ge 50$ bp.
+- **Cryptographic Audit Manifest**: Full-chain SHA-256 provenance tracking.
+
+For full validation procedures and benchmark calibrations, see **[docs/validation.md](docs/validation.md)**.
 
 
 

@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-10-30
+
+### Added
+- **Modular SNV/Indel Caller Dispatch Matrix**:
+  - Added **`modules/nf-core/deepvariant`** supporting platform-specific neural models (`PACBIO` and `ONT_R104`).
+  - Added **`modules/nf-core/clair3`** supporting long-read neural models for ONT and PacBio HiFi.
+  - Upgraded `subworkflows/local/variant_calling/main.nf` with dynamic caller selection via `--snv_caller` (`bcftools`, `deepvariant`, `clair3`).
+- **Epigenomics Specialization**:
+  - Added **`modules/nf-core/pbcpgtools`** for native PacBio HiFi CpG aggregation (`aligned_bam_to_cpg_scores`).
+  - Implemented platform-split epigenomics in `subworkflows/local/methylation/main.nf`: native `pbcpgtools` for PacBio HiFi vs `modkit pileup` for Oxford Nanopore.
+  - Added **`CHECK_MOD_TAGS`** validation process ensuring SAM auxiliary kinetic tags (`MM`/`ML`) are verified prior to pileup.
+- **Joint Multi-Variant Co-Phasing**:
+  - Upgraded **`modules/nf-core/hiphase`** to jointly co-phase small variants (SNVs/indels), structural variants (`Sniffles2`), and tandem repeat expansions (`TRGT`) into unified phase sets (`PS`).
+  - Added **`modules/nf-core/whatshap/stats`** for phase block metric calculation and N50 reporting.
+- **Empirical GIAB HG002 Truth-Set Benchmarking**:
+  - Added **`modules/nf-core/happy`** for small variant (SNV/Indel) concordance evaluation against NIST GIAB truth sets.
+  - Added **`modules/nf-core/truvari`** for structural variant ($\ge 50$ bp) precision and recall benchmarking against GIAB Tier 1 benchmarks.
+  - Created **`subworkflows/local/benchmarking/main.nf`** integrated into all pipeline entrypoints.
+  - Added dedicated benchmark profile **`-profile test_giab`** (`conf/tests/test_giab.config`) and mock truth assets in `tests/data/giab/`.
+  - Authored comprehensive validation guide and baseline expectations in **`docs/validation.md`**.
+- **Transparent MultiQC Analytical Stage Execution Matrix**:
+  - Implemented **`modules/local/execution_status_matrix/main.nf`** generating `pipeline_execution_status_mqc.tsv`.
+  - Wired into MultiQC (`assets/multiqc_config.yml`) to transparently report the status (`COMPLETED`, `SKIPPED (Pre-aligned Input)`, `SKIPPED (Parameter-Disabled)`, `FAILED`) across all 12 pipeline analytical stages.
+- **Automated Security, Secret & PHI Auditing**:
+  - Added **`bin/security_audit.py`** and root-level runner **`security_check.sh`** for zero-dependency scanning of credentials, tokens, cloud keys, private keys, local user paths, and PHI.
+  - Added **`.pre-commit-config.yaml`** for local git pre-commit hook integration.
+  - Integrated fail-fast security gate into **`.github/workflows/ci.yml`** to block pull requests and commits containing sensitive data.
+- **Automated Negative Test Regression Suite**:
+  - Added **`tests/run_negative_tests.sh`** and **`tests/pipeline/negative_tests.nf.test`** testing fail-fast exit codes (exit 1) on missing references, platform mismatches, and invalid samplesheets.
+- **On-Demand Auto-Indexing**:
+  - Added **`modules/nf-core/samtools/index`** and **`modules/nf-core/samtools/faidx`** for automatic indexing of pre-aligned BAMs and reference FASTA files.
+
+### Changed
+- **Regulatory Scope & Intended-Use Reframing**:
+  - Re-scoped `README.md` and `docs/validation.md` strictly to **Research Use Only (RUO) / Clinical Evaluation Platform**, clarifying that clinical diagnostic deployment requires site-specific analytical validation (e.g. CAP/CLIA or ISO 15189).
+  - Documented physical chemistry boundaries (Oxford Nanopore simplex homopolymer indel resolution, 5mC vs 5hmC depth requirements, PacBio HiFi coverage and kinetic tags, phase block continuity limits).
+- **Native Streaming Tag Preservation**:
+  - Deprecated in-memory dictionary-based `transfer_mod_tags.py`, replacing it with native streaming alignment (`minimap2 -ax map-ont -y` and `pbmm2`), guaranteeing coordinate-accurate reverse-strand `MM`/`ML` tag propagation with minimal memory overhead.
+- **Full-Chain PHI De-Identification & Forensic Audit Manifest**:
+  - Upgraded `subworkflows/local/governance`: Dedicated `SANITIZE_BAM` and `SANITIZE_VCF` generating deterministic `anon_id`, stripping patient identifiers, hospital run barcodes, and tool command lines.
+  - Re-routed downstream `VISUALIZATION` (JBrowse 2, Methylartist, Dashboard) and `REPORTING` across all workflows to consume exclusively sanitized artifacts.
+  - Expanded `manifest.json` into a cryptographic full-chain provenance record binding raw input SHAs, reference FASTA checksums, workflow commit ID, container digests, execution parameters, and output checksums.
+  - Pinned container image digests in `conf/version_lock.config`.
+
+### Fixed
+- **Groovy Boolean Channel Evaluation Bug**:
+  - Replaced Groovy boolean channel checks (`if (channel)`) with idiomatic Nextflow DSL2 `.branch { ... }` operators in `nanopore.nf`, `pacbio.nf`, and `longvarmeth.nf`.
+  - Fixed dropped FASTQ inputs and prevented pre-aligned BAMs from incorrectly entering `MERGE_BAMS`.
+- **Silent Parameter Bypass on Missing Reference**:
+  - Updated `lib/Utils.groovy` with fatal fail-fast validation: immediately terminates execution (`exit 1`) with an explicit error banner when `--run_type reference_based` lacks a valid `--ref_nuc`.
+- **Platform & Chemistry Cross-Validation**:
+  - Added strict platform validation in `lib/Utils.groovy`, instantly rejecting mismatched platform inputs (e.g. PacBio BAMs passed to `--platform ont`).
+  - Added duplicate sample ID detection and required column header validation.
+- **Channel Closure Arity**:
+  - Resolved variable tuple arity exceptions in multi-channel joins within `phasing/main.nf` and `governance/main.nf`.
+
+### Security
+- Sanitized remaining host-specific filesystem paths (`/data/Jyotirmoy/...`) from `conf/fraka.config`, `conf/human.config`, `conf/eukaryote.config`, and template `samplesheet.csv`.
+- Hardened `.gitignore` to strictly ignore private keys (`*.key`, `*.pem`, `*.p12`, `*.pfx`, `id_rsa*`, `id_ed25519*`), environment files (`.env*`), and sensitive credentials.
+- Added automated fail-fast security scanning in CI (`.github/workflows/ci.yml`).
+
+---
+
 ## [0.3.0] - 2026-10-12
 
 ### Added

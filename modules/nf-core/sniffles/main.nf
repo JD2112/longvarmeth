@@ -10,13 +10,17 @@ process SNIFFLES {
     path reference
 
     output:
-    tuple val(sample_id), path("${sample_id}_svs.vcf.gz"), emit: sv_vcf
-    path "versions.yml"                                  , emit: versions
+    tuple val(sample_id), path("${sample_id}_svs.vcf.gz"), path("${sample_id}_svs.vcf.gz.tbi"), emit: sv_vcf_tbi
+    tuple val(sample_id), path("${sample_id}_svs.vcf.gz")                                      , emit: sv_vcf
+    path "versions.yml"                                                                        , emit: versions
 
     script:
     def args = task.ext.args ?: ''
     """
     sniffles --input ${bam} --vcf ${sample_id}_svs.vcf.gz --reference ${reference} --threads ${task.cpus ?: 4} ${args}
+    if [ ! -f ${sample_id}_svs.vcf.gz.tbi ]; then
+        tabix -f -p vcf ${sample_id}_svs.vcf.gz || true
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -27,6 +31,10 @@ process SNIFFLES {
     stub:
     """
     touch ${sample_id}_svs.vcf.gz
-    touch versions.yml
+    touch ${sample_id}_svs.vcf.gz.tbi
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        sniffles: 2.8.0
+    END_VERSIONS
     """
 }

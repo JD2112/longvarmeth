@@ -12,9 +12,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  security_audit:
+    name: 'Security, Secrets & PHI Audit'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run Pre-Commit Security Scanner
+        run: |
+          chmod +x security_check.sh bin/security_audit.py
+          ./security_check.sh --strict
+
   pytest:
     name: 'Python Unit & Integrity Tests'
     runs-on: ubuntu-latest
+    needs: security_audit
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v4
@@ -30,13 +48,31 @@ jobs:
           pip install pytest
           pytest tests/unit_tests/ -v
 
+  negative_tests:
+    name: 'Fail-Fast Negative Tests'
+    runs-on: ubuntu-latest
+    needs: security_audit
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v4
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: 'latest'
+
+      - name: Run negative regression tests
+        run: |
+          chmod +x tests/run_negative_tests.sh
+          ./tests/run_negative_tests.sh
+
   pipeline_stub:
     name: 'Nextflow Pipeline Stub Tests'
     runs-on: ubuntu-latest
-    needs: pytest
+    needs: [pytest, negative_tests]
     strategy:
       matrix:
-        profile: ['test_ont', 'test_pacbio']
+        profile: ['test_ont', 'test_pacbio', 'test_giab']
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v4
@@ -49,4 +85,5 @@ jobs:
       - name: Run pipeline dry-run stub test
         run: |
           nextflow run main.nf -profile ${{ matrix.profile }} -stub
+
 

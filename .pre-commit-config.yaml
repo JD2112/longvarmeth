@@ -1,0 +1,16 @@
+# .pre-commit-config.yaml
+# LongVarMeth Git Pre-Commit Hook Configuration
+# Automatically runs security, credential, and PHI audit before every commit.
+# Install:
+#     pip install pre-commit && pre-commit install
+
+repos:
+  - repo: local
+    hooks:
+      - id: security-audit
+        name: LongVarMeth Security, Secret & PHI Audit
+        entry: ./security_check.sh --staged-only --strict
+        language: script
+        pass_filenames: false
+        always_run: true
+
