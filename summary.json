@@ -1,0 +1,12 @@
+{
+  "secrets": 0,
+  "flake8_issues": 5,
+  "black_clean": false,
+  "r_files": 0,
+  "nfcore": {
+    "passed": 128,
+    "warned": 8,
+    "failed": 66
+  },
+  "sbom": "generated"
+}
