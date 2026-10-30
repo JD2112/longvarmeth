@@ -16,6 +16,8 @@ include { VISUALIZATION } from '../subworkflows/local/visualization'
 include { REPORTING } from '../subworkflows/local/reporting'
 include { MERGE_BAMS } from '../modules/local/merge_bams'
 include { MOSDEPTH } from '../modules/nf-core/mosdepth'
+include { SAMTOOLS_INDEX } from '../modules/nf-core/samtools/index'
+include { BENCHMARKING } from '../subworkflows/local/benchmarking'
 
 workflow NANOPORE_PIPELINE {
     def samplesheet_file = file(params.input)
@@ -134,6 +136,9 @@ workflow NANOPORE_PIPELINE {
                     tuple(run_id, bam, bai, 'pipeline_aligned')
                 }
         }
+
+        def ch_all_aligned_with_prov = ch_all_prealigned.mix(ch_newly_aligned)
+        def aligned_bams = ch_all_aligned_with_prov.map { run_id, bam, bai, prov -> tuple(run_id, bam, bai) }
 
         // Post-alignment Coverage QC (Mosdepth)
         MOSDEPTH(aligned_bams, ref_nuc_path)

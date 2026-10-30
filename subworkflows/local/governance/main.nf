@@ -6,7 +6,7 @@ process SANITIZE_BAM {
     tag "$anon_id"
     label 'process_single'
 
-    conda "bioconda::samtools=1.23.1 bioconda::bcftools=1.19"
+    conda "bioconda::samtools=1.23.1"
     container "quay.io/biocontainers/samtools:1.23.1--ha83d96e_0"
 
     input:
@@ -151,8 +151,17 @@ process GENERATE_AUDIT_MANIFEST {
         "sample_id": "${sample_id}",
         "anonymized_id": "${anon_id}",
         "timestamp_utc": "\$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-        "workflow_commit": "${workflow.commitId ?: 'dev'}",
-        "workflow_version": "${workflow.manifest.version ?: '1.0.0'}",
+        "workflow": {
+            "version": "${workflow.manifest.version ?: '1.0.0'}",
+            "commit": "${workflow.commitId ?: 'dev'}",
+            "container_engine": "${workflow.containerEngine ?: 'none'}",
+            "profile": "${workflow.profile ?: 'standard'}"
+        },
+        "provenance": {
+            "input_checksum_sha256": "\${INPUT_SHA}",
+            "reference_fasta": "${ref_nuc.name}",
+            "reference_sha256": "\${REF_SHA}"
+        },
         "parameters": {
             "platform": "${params.platform}",
             "species": "${params.species}",
