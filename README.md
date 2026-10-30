@@ -1,11 +1,13 @@
 # longvarmeth
 
 [![quindecagon](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/quindecagon.json)](https://github.com/JD2112/quindecagon)
+[![Quindecagon Pipeline Audit](https://github.com/JD2112/longvarmeth/actions/workflows/quindecagon-audit.yml/badge.svg)](https://github.com/JD2112/longvarmeth/actions/workflows/quindecagon-audit.yml)
 [![nf-core lint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/nfcore_lint.json)](https://nf-co.re)
 [![SBOM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/syft.json)](https://github.com/anchore/syft)
 [![secrets](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/secrets.json)](https://github.com/gitleaks/gitleaks)
 [![code style](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/black.json)](https://github.com/psf/black)
 [![flake8](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JD2112/longvarmeth/badges/flake8.json)](https://flake8.pycqa.org)
+[![longvarmeth CI](https://github.com/JD2112/longvarmeth/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/JD2112/longvarmeth/actions/workflows/ci.yml)
 
 A modular Nextflow DSL2 evaluation and research platform with forensic clinical governance controls for single-molecule long-read genomics and epigenomics (**Oxford Nanopore & PacBio HiFi**). It features an explicit 12-stage analytical architecture with host GPU-accelerated basecalling/demux, pre- and post-alignment QC, *de novo* assembly & polishing, native kinetic tag streaming (`MM`/`ML`), modular small variant calling (`DeepVariant`, `Clair3`, `BCFtools`), structural variant calling (`Sniffles2`, `TRGT`, `CNVkit`), joint multi-variant haplotype co-phasing (`HiPhase`, `WhatsHap`), automated truth-set benchmarking (`hap.py`, `Truvari`), full-chain PHI de-identification and SHA-256 provenance manifests (inspired by `milou`), and a transparent MultiQC execution status matrix.
 
