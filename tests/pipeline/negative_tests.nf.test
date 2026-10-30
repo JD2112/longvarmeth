@@ -1,0 +1,37 @@
+nextflow_pipeline {
+
+    name "Test Pipeline - Negative & Fail-Fast Validation Tests"
+    script "main.nf"
+
+    test("Should abort when --ref_nuc is missing in reference-based mode") {
+        when {
+            params {
+                platform = "ont"
+                input    = "tests/samplesheet_test.csv"
+                outdir   = "results_test_neg1"
+                run_type = "reference_based"
+                ref_nuc  = ""
+            }
+        }
+        then {
+            assert workflow.failed
+            assert workflow.exitStatus != 0
+        }
+    }
+
+    test("Should abort when PacBio input format is provided to ONT workflow") {
+        when {
+            params {
+                platform = "ont"
+                input    = "tests/csv/samplesheet_pacbio_test.csv"
+                outdir   = "results_test_neg2"
+            }
+        }
+        then {
+            assert workflow.failed
+            assert workflow.exitStatus != 0
+        }
+    }
+
+}
+

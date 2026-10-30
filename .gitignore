@@ -44,8 +44,25 @@ db/
 *.tar.gz
 *.fa.fai
 *.fasta.fai
+!tests/data/**/*.fai
 notes.md
 debugging.md
 quindecagon_test.md
 UPDATES.md
 TODO.md
+review/
+
+# Credentials, Tokens & Security Secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*.pkcs12
+id_rsa*
+id_ed25519*
+.env
+.env.*
+!.env.example
+credentials*
+*.secret
+ROADMAP*

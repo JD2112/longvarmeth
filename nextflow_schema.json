@@ -78,7 +78,7 @@
         "dorado_bin": {
           "type": "string",
           "description": "Path to local host Dorado executable binary.",
-          "default": "/data/Jyotirmoy/tools/dorado-0.9.6-linux-x64/bin/dorado"
+          "default": "dorado"
         },
         "gpu_devices": {
           "type": "string",
@@ -172,6 +172,34 @@
           "description": "Path to local VEP cache directory."
         }
       }
+    },
+    "benchmarking_options": {
+      "title": "Truth-Set Benchmarking Options",
+      "type": "object",
+      "description": "Parameters for empirical validation and GIAB HG002 truth-set concordance.",
+      "properties": {
+        "run_benchmarking": {
+          "type": "boolean",
+          "description": "Enable truth-set benchmarking using hap.py (SNVs/indels) and Truvari (SVs).",
+          "default": false
+        },
+        "benchmark_truth_vcf": {
+          "type": "string",
+          "description": "Path to high-confidence truth VCF for small variants (e.g. GIAB HG002)."
+        },
+        "benchmark_truth_bed": {
+          "type": "string",
+          "description": "Path to high-confidence truth BED defining benchmark regions for small variants."
+        },
+        "benchmark_sv_truth_vcf": {
+          "type": "string",
+          "description": "Path to high-confidence truth VCF for structural variants (e.g. GIAB Tier 1 SVs)."
+        },
+        "benchmark_sv_truth_bed": {
+          "type": "string",
+          "description": "Path to high-confidence truth BED defining benchmark regions for structural variants."
+        }
+      }
     }
   },
   "allOf": [
@@ -180,6 +208,7 @@
     { "$ref": "#/definitions/reference_genome_options" },
     { "$ref": "#/definitions/dorado_options" },
     { "$ref": "#/definitions/filtering_and_assembly_options" },
-    { "$ref": "#/definitions/annotation_options" }
+    { "$ref": "#/definitions/annotation_options" },
+    { "$ref": "#/definitions/benchmarking_options" }
   ]
 }

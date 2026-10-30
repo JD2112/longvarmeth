@@ -44,8 +44,9 @@ workflow STRUCTURAL_VARIANTS {
     }
 
     emit:
-    sv_vcf   = ch_sv_vcf
-    cnv_calls= ch_cnv_calls
-    trgt_vcf = ch_trgt_vcf
-    versions = ch_versions
+    sv_vcf_tbi = SNIFFLES.out.sv_vcf_tbi
+    sv_vcf     = ch_sv_vcf
+    cnv_calls  = ch_cnv_calls
+    trgt_vcf   = ch_trgt_vcf
+    versions   = ch_versions
 }

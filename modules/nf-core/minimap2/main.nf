@@ -14,7 +14,7 @@ process MINIMAP2 {
     path "versions.yml"                           , emit: versions
 
     script:
-    def args = task.ext.args ?: '-ax map-ont'
+    def args = task.ext.args ?: '-ax map-ont -y'
     """
     minimap2 ${args} -t ${task.cpus ?: 8} ${reference} ${reads} > ${sample_id}.sam
 
