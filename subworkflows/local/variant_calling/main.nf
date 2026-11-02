@@ -33,12 +33,6 @@ workflow VARIANT_CALLING {
         def ch_chroms = Channel.fromPath(ref_fai_path)
             .splitCsv(sep: '\t')
             .map { row -> row[0] }
-            .filter { chrom -> 
-                if (params.species == 'human') {
-                    return chrom =~ /^chr[0-9XYM]+$/ || chrom =~ /^[0-9XYM]+$/
-                }
-                return true
-            }
 
         def call_input = aligned_bam_bai.combine(ch_chroms)
 
