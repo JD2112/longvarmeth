@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "label": "nf-core lint",
+  "message": "128 passed / 66 failed",
+  "color": "yellow"
+}
